@@ -1,5 +1,5 @@
 // +build !goci
-package core
+package view
 
 // #include <cairo/cairo.h>
 import "C"

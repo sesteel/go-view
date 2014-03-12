@@ -1,4 +1,4 @@
-package events
+package event
 
 import ()
 
@@ -26,6 +26,14 @@ type KeyDown struct {KeyUp}
 
 type MousePosition struct {
 	X, Y   int
+}
+
+type MouseEnter struct {
+	MousePosition
+}
+
+type MouseExit struct {
+	MousePosition
 }
 
 type MouseButtonUp struct {

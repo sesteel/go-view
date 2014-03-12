@@ -1,5 +1,5 @@
 // +build !goci
-package core
+package view
 
 // #include <cairo/cairo-xlib.h>
 // #include <cairo/cairo-pdf.h>
@@ -10,10 +10,11 @@ package core
 import "C"
 
 import (
+	"math"
 	"image"
 	"image/draw"
 	"unsafe"
-	"view/core/extimage"
+	"ui/view/extimage"
 )
 
 // Golang struct to hold both a cairo surface and a cairo context
@@ -259,6 +260,17 @@ func (self *Surface) Rectangle(x, y, width, height float64) {
 	C.cairo_rectangle(self.context,
 		C.double(x), C.double(y),
 		C.double(width), C.double(height))
+}
+
+func (self *Surface) RoundedRectangle(x, y, width, height, radiusUL, radiusUR, radiusLR, radiusLL float64) {
+	degrees := math.Pi / 180.0;
+	self.NewSubPath();
+	self.Arc(x + radiusUL, y + radiusUL, radiusUL, 180 * degrees, 270 * degrees)
+	self.Arc(x + width - radiusUR, y + radiusUR, radiusUR, -90 * degrees, 0 * degrees)
+	self.Arc(x + width - radiusLR, y + height - radiusLR, radiusLR, 0 * degrees, 90 * degrees)
+	self.Arc(x + radiusLL, y + height - radiusLL, radiusLL, 90 * degrees, 180 * degrees)
+	
+	self.ClosePath()
 }
 
 func (self *Surface) ClosePath() {

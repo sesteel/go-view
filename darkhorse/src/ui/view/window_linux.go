@@ -1,5 +1,5 @@
 // +build linux,!goci
-package core
+package view
 
 // #cgo pkg-config: cairo x11
 // #include <X11/Xlib.h>
@@ -24,55 +24,46 @@ func init() {
 	C.XInitThreads()
 }
 
-type XWindow struct {
-	cairoSurface *Surface
+type Window struct {
+	CompositeView
 	display      *C.Display
 	screen       C.int
 	xwindow      C.Window
-	name         string
-	width        uint
-	height       uint
 }
 
-func (self *XWindow) GetSurface() *Surface {
-	return self.cairoSurface
+func (self *Window) Parent() View {
+	return nil
 }
 
-func (self *XWindow) SetName(name string) {
+func (self *Window) SetLayout(layout Layout) {
+	self.layout = layout
+} 
+
+func (self *Window) GetLayout() Layout {
+	return self.layout
+} 
+
+func (self *Window) Surface() *Surface {
+	return self.surface
+}
+
+func (self *Window) SetText(name string) {
 	n := C.CString(name)
 	defer C.free(unsafe.Pointer(n))
-	self.name = name
+	self.text = name
 	C.XStoreName(self.display, self.xwindow, n)
 }
 
-func (self *XWindow) GetName() string {
-	return self.name
-}
-
-func (self *XWindow) SetSize(width, height uint) {
+func (self *Window) SetSize(width, height uint) {
 	self.width = width
 	self.height = height
-	C.cairo_xlib_surface_set_size(self.cairoSurface.surface, C.int(self.width), C.int(self.height))
-	C.cairo_xlib_surface_set_drawable(self.cairoSurface.surface, C.Drawable(self.xwindow), C.int(self.width), C.int(self.height))
+	C.cairo_xlib_surface_set_size(self.surface.surface, C.int(self.width), C.int(self.height))
+	C.cairo_xlib_surface_set_drawable(self.surface.surface, C.Drawable(self.xwindow), C.int(self.width), C.int(self.height))
 	C.XResizeWindow(self.display, self.xwindow, C.uint(self.width), C.uint(self.height))
-	self.paint()
+	self.Draw()
 }
 
-func (self *XWindow) GetSize() (width, height uint) {
-	return self.width, self.height
-}
-
-func (self *XWindow) paint() {
-	fmt.Println("PAINT")
-	self.cairoSurface.SetSourceRGB(0, 0, 0)
-	self.cairoSurface.Paint()
-	self.cairoSurface.SetLineWidth(1.5)
-	self.cairoSurface.SetSourceRGB(0, 1, 1)
-	self.cairoSurface.Rectangle(10, 10, float64(self.width)/1.2, float64(self.height)/1.2)
-	self.cairoSurface.Stroke()
-}
-
-func NewWindow(name string, x, y, w, h uint) Window {
+func NewWindow(name string, x, y, w, h uint) *Window {
 	var width C.uint = C.uint(w)
 	var height C.uint = C.uint(h)
 	var ev C.XEvent
@@ -116,13 +107,22 @@ func NewWindow(name string, x, y, w, h uint) Window {
 	ctx := C.cairo_create(s)
 	surface := &Surface{surface: s, context: ctx}
 
-	window := &XWindow{surface, dpy, screen_num, win, name, uint(width), uint(height)}
-	window.SetName(name)
-	runtime.SetFinalizer(window, func(w *XWindow) {
+	window := new(Window)
+	window.display  = dpy
+	window.screen   = screen_num
+	window.xwindow  = win
+	window.surface  = surface 
+	window.text     = name
+	window.width    = uint(width)
+	window.height   = uint(height)
+	window.layout   = nil
+	
+	window.SetText(name)
+	runtime.SetFinalizer(window, func(w *Window) {
 		C.XCloseDisplay(window.display)
 	})
 
-	window.paint()
+	window.Draw()
 
 	eventLoop := func() {
 		/* as each event that we asked about occurs, we respond.  In this
@@ -141,19 +141,24 @@ func NewWindow(name string, x, y, w, h uint) Window {
 					window.height = uint(height)
 					C.cairo_xlib_surface_set_size(s, event.width, event.height)
 					fmt.Println("Size changed to: %d by %d\n", width, height)
-					window.paint()
+//					window.Draw()
 				}
 
 			case C.Expose:
+				event := (*C.XExposeEvent)(unsafe.Pointer(&ev[0]))
+				if (event.count > 0) {
+        			break;
+        		}
 				fmt.Println("Expose")
-				window.paint()
+				window.Draw()
 
 			case C.MotionNotify:
-				fmt.Println("MOUSE MOVE \n")
+				//view.DispatchMouseExit()
 
 			case C.ButtonPress:
-				C.XCloseDisplay(dpy)
-				return
+			
+			default:
+				//C.XFlush(dpy)
 			}
 		}
 	}

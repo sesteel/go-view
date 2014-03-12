@@ -1,5 +1,5 @@
 // +build !goci
-package core
+package view
 
 // #include <cairo/cairo-pdf.h>
 // #include <cairo/cairo-ps.h>
