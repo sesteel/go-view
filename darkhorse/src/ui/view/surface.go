@@ -15,6 +15,7 @@ import (
 	"image/draw"
 	"unsafe"
 	"ui/view/extimage"
+	"ui/view/color"
 )
 
 // Golang struct to hold both a cairo surface and a cairo context
@@ -127,8 +128,8 @@ func (self *Surface) SetSourceRGB(red, green, blue float64) {
 	C.cairo_set_source_rgb(self.context, C.double(red), C.double(green), C.double(blue))
 }
 
-func (self *Surface) SetSourceRGBA(red, green, blue, alpha float64) {
-	C.cairo_set_source_rgba(self.context, C.double(red), C.double(green), C.double(blue), C.double(alpha))
+func (self *Surface) SetSourceRGBA(c color.RGBA) {
+	C.cairo_set_source_rgba(self.context, C.double(c.R), C.double(c.G), C.double(c.B), C.double(c.A))
 }
 
 func (self *Surface) SetSourceSurface(surface *Surface, x, y float64) {
@@ -269,7 +270,6 @@ func (self *Surface) RoundedRectangle(x, y, width, height, radiusUL, radiusUR, r
 	self.Arc(x + width - radiusUR, y + radiusUR, radiusUR, -90 * degrees, 0 * degrees)
 	self.Arc(x + width - radiusLR, y + height - radiusLR, radiusLR, 0 * degrees, 90 * degrees)
 	self.Arc(x + radiusLL, y + height - radiusLL, radiusLL, 90 * degrees, 180 * degrees)
-	
 	self.ClosePath()
 }
 
@@ -403,7 +403,7 @@ func (self *Surface) SetFontMatrix(matrix Matrix) {
 }
 
 func (self *Surface) SetFontOptions(fontOptions *FontOptions) {
-	panic("not implemented") // todo
+	C.cairo_set_font_options(self.context, fontOptions.options)
 }
 
 func (self *Surface) GetFontOptions() *FontOptions {
@@ -411,23 +411,24 @@ func (self *Surface) GetFontOptions() *FontOptions {
 	return nil
 }
 
-func (self *Surface) SetFontFace(fontFace *FontFace) {
-	panic("not implemented") // todo
-}
-
-func (self *Surface) GetFontFace() *FontFace {
-	panic("not implemented") // todo
-	return nil
-}
-
-func (self *Surface) SetScaledFont(scaledFont *ScaledFont) {
-	panic("not implemented") // todo
-}
-
-func (self *Surface) GetScaledFont() *ScaledFont {
-	panic("not implemented") // todo
-	return nil
-}
+//
+//func (self *Surface) SetFontFace(fontFace *FontFace) {
+//	panic("not implemented") // todo
+//}
+//
+//func (self *Surface) GetFontFace() *FontFace {
+//	panic("not implemented") // todo
+//	return nil
+//}
+//
+//func (self *Surface) SetScaledFont(scaledFont *ScaledFont) {
+//	panic("not implemented") // todo
+//}
+//
+//func (self *Surface) GetScaledFont() *ScaledFont {
+//	panic("not implemented") // todo
+//	return nil
+//}
 
 func (self *Surface) ShowText(text string) {
 	cs := C.CString(text)
@@ -435,12 +436,12 @@ func (self *Surface) ShowText(text string) {
 	C.free(unsafe.Pointer(cs))
 }
 
-func (self *Surface) ShowGlyphs(glyphs []Glyph) {
-	panic("not implemented") // todo
-}
+//func (self *Surface) ShowGlyphs(glyphs []Glyph) {
+//	panic("not implemented") // todo
+//}
 
-func (self *Surface) ShowTextGlyphs(text string, glyphs []Glyph, clusters []TextCluster, flags TextClusterFlag) {
-}
+//func (self *Surface) ShowTextGlyphs(text string, glyphs []Glyph, clusters []TextCluster, flags TextClusterFlag) {
+//}
 
 func (self *Surface) TextPath(text string) {
 	cs := C.CString(text)
@@ -448,9 +449,9 @@ func (self *Surface) TextPath(text string) {
 	C.free(unsafe.Pointer(cs))
 }
 
-func (self *Surface) GlyphPath(glyphs []Glyph) {
-	panic("not implemented") // todo
-}
+//func (self *Surface) GlyphPath(glyphs []Glyph) {
+//	panic("not implemented") // todo
+//}
 
 func (self *Surface) TextExtents(text string) *TextExtents {
 	cte := C.cairo_text_extents_t{}
@@ -468,17 +469,17 @@ func (self *Surface) TextExtents(text string) *TextExtents {
 	return te
 }
 
-func (self *Surface) GlyphExtents(glyphs []Glyph) *TextExtents {
-	panic("not implemented") // todo
-	//C.cairo_text_extents
-	return nil
-}
-
-func (self *Surface) FontExtents() *FontExtents {
-	panic("not implemented") // todo
-	//C.cairo_text_extents
-	return nil
-}
+//func (self *Surface) GlyphExtents(glyphs []Glyph) *TextExtents {
+//	panic("not implemented") // todo
+//	//C.cairo_text_extents
+//	return nil
+//}
+//
+//func (self *Surface) FontExtents() *FontExtents {
+//	panic("not implemented") // todo
+//	//C.cairo_text_extents
+//	return nil
+//}
 
 ///////////////////////////////////////////////////////////////////////////////
 // Error status queries
@@ -663,9 +664,6 @@ func (self *Surface) GetStride() int {
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// Pattern creation methods
-
-///////////////////////////////////////////////////////////////////////////////
 // image.Image methods
 
 func (self *Surface) GetImage() image.Image {
@@ -765,3 +763,5 @@ func (self *Surface) SetImage(img image.Image) {
 	}
 	panic("Unknown surface format")
 }
+
+

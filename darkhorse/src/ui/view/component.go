@@ -1,7 +1,7 @@
 package view
 
 import (
-	"ui/view/icon"
+	"ui/view/color"
 )
 
 type Component interface {
@@ -23,43 +23,80 @@ type DefaultComponent struct {
 func NewComponent(parent View, name string) *DefaultComponent {
 	c := new(DefaultComponent)
 	c.parent  = parent.Parent()
-	c.surface = parent.Surface()
+	c.style   = NewStyle()
 	c.text    = name
-	c.width, c.height = parent.Size()
+	c.width, c.height = 100, 20
 	return c
 }
 
-func (self *DefaultComponent) Draw() {
-	s := self.surface
+func (self *DefaultComponent) Draw(surface *Surface) {
+	style   := self.style
+	parent  := self.parent
 	
-	// draw myself
-	s.SetSourceRGB(0.2, 0.2, .2)
-	s.Paint()
+	// traverse up tree to find style until parent is nil
+	for self.style == nil && parent != nil {
+		style = self.parent.Style()
+		parent = parent.Parent()
+	}
 	
-	s.SetAntialias(ANTIALIAS_SUBPIXEL)
-	s.SetLineWidth(1)
-	s.MoveTo(0, 0)
-	s.SetSourceRGB(0.3, 0.3, .3)
-	s.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 3, 3, 3, 3)
-	s.StrokePreserve()
-	s.Fill()
-	s.Flush()
+	// cannot draw without style... draw fusia and black text
+	if style == nil {
+		msg  := "Error: No style set for component [" + self.text + "]'s hierarchy."
+		surface.SelectFontFace("Sans", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
+		surface.SetFontSize(16)
+		te := surface.TextExtents(msg)
+		surface.SetSourceRGB(1, 2, 1)
+		surface.RoundedRectangle(float64(self.x), float64(self.y), float64(te.Width), float64(self.height), 0, 0, 0, 0)
+		surface.StrokePreserve()
+		surface.Fill()
+		
+		surface.SelectFontFace("Sans", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
+		surface.SetFontSize(16)
+		surface.SetSourceRGBA(color.Cyan2)
+		surface.MoveTo(float64(self.x), float64(self.y) + te.Height)
+		surface.ShowText(msg)
+		
+		return
+	}
 	
-	s.SetSourceRGB(.7, .7, .7)
-	s.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 3, 3, 3, 3)
-	s.StrokePreserve()
+	if style.Antialias() {
+		surface.SetAntialias(ANTIALIAS_SUBPIXEL)
+	} else {
+		surface.SetAntialias(ANTIALIAS_NONE)
+	}
 	
-	s.SetSourceRGB(.7, .9, .7)
-	s.SelectFontFace("FontAwesome", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
-	s.SetFontSize(26)
-	s.MoveTo(50, 50)
-	s.ShowText(icon.FA_ANDROID)
-	s.SetSourceRGB(.9, .9, .9)
-	s.SelectFontFace("Sans", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
-	s.SetFontSize(26)
-	s.MoveTo(0, 70)
-	s.ShowText("Stan Was Here @ 1234567890qwertyuiopasdfghjklzxcvbnm, ⊘Δ")
-	// !!!!! NOT A COMPOSITE !!!!!!
-	// draw my children on myself
-//	self.DefaultView.Draw()
+	surface.SetSourceRGBA(style.Background())
+	surface.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 0, 0, 0, 0)
+	surface.Fill()
+	
+	surface.SetLineWidth(style.BorderWidthTop())
+	surface.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 0, 0, 0, 0)
+	surface.StrokePreserve()
+	
+//	// draw myself
+//	s.SetSourceRGB(0.2, 0.2, .2)
+//	s.Paint()
+//	
+//	s.SetLineWidth(1)
+//	s.MoveTo(0, 0)
+//	s.SetSourceRGB(0.3, 0.3, .3)
+//	s.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 3, 3, 3, 3)
+//	
+//	s.SetSourceRGB(.7, .7, .7)
+//	s.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 3, 3, 3, 3)
+//	s.StrokePreserve()
+//	
+//	s.SetSourceRGB(.7, .9, .7)
+//	s.SelectFontFace("FontAwesome", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
+//	s.SetFontSize(26)
+//	s.MoveTo(50, 50)
+//	s.ShowText(icon.FA_ANDROID)
+//	s.SetSourceRGB(.9, .9, .9)
+//	s.SelectFontFace("Sans", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
+//	s.SetFontSize(26)
+//	s.MoveTo(0, 70)
+//	s.ShowText("Stan Was Here @ 1234567890qwertyuiopasdfghjklzxcvbnm, ⊘Δ")
+//	// !!!!! NOT A COMPOSITE !!!!!!
+//	// draw my children on myself
+////	self.DefaultView.Draw()
 }

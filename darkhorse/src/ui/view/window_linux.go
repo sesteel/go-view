@@ -18,6 +18,8 @@ import (
 	"fmt"
 	"runtime"
 	"unsafe"
+	"ui/view/color"
+	"time"
 )
 
 func init() {
@@ -54,13 +56,33 @@ func (self *Window) SetText(name string) {
 	C.XStoreName(self.display, self.xwindow, n)
 }
 
-func (self *Window) SetSize(width, height uint) {
+func (self *Window) SetSize(width, height float64) {
 	self.width = width
 	self.height = height
 	C.cairo_xlib_surface_set_size(self.surface.surface, C.int(self.width), C.int(self.height))
 	C.cairo_xlib_surface_set_drawable(self.surface.surface, C.Drawable(self.xwindow), C.int(self.width), C.int(self.height))
 	C.XResizeWindow(self.display, self.xwindow, C.uint(self.width), C.uint(self.height))
-	self.Draw()
+	self.DrawSelf()
+}
+
+func (self *Window) Draw(surface *Surface) {
+	if self.layout == nil {
+		surface.SetSourceRGBA(color.HexRGBA(0xFFFFFFFF))
+		surface.Paint()
+	} else {
+		self.layout.Draw(surface)
+	}
+}
+	
+func (self *Window) DrawSelf() {
+	t := time.Now()
+	s := NewSurface(FORMAT_ARGB32, int(self.width), int(self.height))
+	s.SetSourceRGBA(color.White)
+	s.Paint()
+	self.Draw(s)
+	self.surface.SetSourceSurface(s, 0, 0)
+	self.surface.Paint()
+	fmt.Println("Draw Window:",  time.Since(t))
 }
 
 func NewWindow(name string, x, y, w, h uint) *Window {
@@ -113,8 +135,8 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	window.xwindow  = win
 	window.surface  = surface 
 	window.text     = name
-	window.width    = uint(width)
-	window.height   = uint(height)
+	window.width    = float64(width)
+	window.height   = float64(height)
 	window.layout   = nil
 	
 	window.SetText(name)
@@ -122,7 +144,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 		C.XCloseDisplay(window.display)
 	})
 
-	window.Draw()
+	window.DrawSelf()
 
 	eventLoop := func() {
 		/* as each event that we asked about occurs, we respond.  In this
@@ -137,20 +159,17 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				if width != C.uint(event.width) || height != C.uint(event.height) {
 					width = C.uint(event.width)
 					height = C.uint(event.height)
-					window.width = uint(width)
-					window.height = uint(height)
+					window.width = float64(width)
+					window.height = float64(height)
 					C.cairo_xlib_surface_set_size(s, event.width, event.height)
-					fmt.Println("Size changed to: %d by %d\n", width, height)
-//					window.Draw()
 				}
 
 			case C.Expose:
-				event := (*C.XExposeEvent)(unsafe.Pointer(&ev[0]))
-				if (event.count > 0) {
-        			break;
-        		}
-				fmt.Println("Expose")
-				window.Draw()
+//				event := (*C.XExposeEvent)(unsafe.Pointer(&ev[0]))
+//				if (event.count > 0) {
+//        			continue;
+//        		}
+				window.DrawSelf()
 
 			case C.MotionNotify:
 				//view.DispatchMouseExit()

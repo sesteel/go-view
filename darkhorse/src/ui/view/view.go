@@ -6,7 +6,7 @@ import (
 )
 
 type Drawer interface {
-	Draw()
+	Draw(*Surface)//Bounds, ScrollOffset)
 }
 
 type View interface {
@@ -14,11 +14,11 @@ type View interface {
 	Surface() *Surface
 	SetText(string) 
 	Text() string
-	Position() (uint, uint)
-	SetSize(uint, uint) 
-	Size() (uint, uint)
-	SetStyle(*Style) 
-	Style() *Style
+	Position() (float64, float64)
+	SetSize(float64, float64) 
+	Size() (float64, float64)
+	SetStyle(Style) 
+	Style() Style
 	Drawer
 	AddMouseEnterHandler(func(event.MouseEnter))
 	AddMouseExitHandler(func(event.MouseExit))
@@ -28,11 +28,11 @@ type DefaultView struct {
 	parent             View
 	surface            *Surface
 	text               string
-	width              uint
-	height             uint
-	x, y               uint
+	width              float64
+	height             float64
+	x, y               float64
 	focus              bool
-	style              *Style
+	style              Style
 	event.EventDispatcher
 }
 
@@ -40,7 +40,7 @@ func (self *DefaultView) Parent() View {
 	return self.parent
 }
 
-func (self *DefaultView) Position() (uint, uint) {
+func (self *DefaultView) Position() (float64, float64) {
 	return self.x, self.y
 }
 
@@ -56,23 +56,23 @@ func (self *DefaultView) Text() string {
 	return self.text
 }
 
-func (self *DefaultView) SetSize(width, height uint) {
+func (self *DefaultView) SetSize(width, height float64) {
 	self.width = width
 	self.height = height
 }
 
-func (self *DefaultView) Size() (uint, uint) {
+func (self *DefaultView) Size() (float64, float64) {
 	return self.width, self.height
 }
 
-func (self *DefaultView) SetStyle(style *Style) {
+func (self *DefaultView) SetStyle(style Style) {
 	self.style = style
 }
 
-func (self *DefaultView) Style() *Style {
+func (self *DefaultView) Style() Style {
 	return self.style
 }
 
-func (self *DefaultView) Draw() {
+func (self *DefaultView) Draw(surface *Surface) {
 	// default drawing does here
 }
