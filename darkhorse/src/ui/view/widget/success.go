@@ -37,6 +37,6 @@ func (self *SuccessButton) Draw(s *view.Surface) {
 	s.SetFontSize(14)
 	s.MoveTo(25, 15)
 	s.SetSourceRGBA(color.White)
-	s.ShowText(self.Text())
+	s.ShowText(self.Name())
 }
 

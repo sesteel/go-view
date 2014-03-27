@@ -14,12 +14,13 @@ package view
 import "C"
 
 import (
-//	"errors"
+	//	"errors"
 	"fmt"
+	"reflect"
 	"runtime"
-	"unsafe"
-	"ui/view/color"
 	"time"
+	"ui/view/color"
+	"unsafe"
 )
 
 func init() {
@@ -28,9 +29,10 @@ func init() {
 
 type Window struct {
 	CompositeView
-	display      *C.Display
-	screen       C.int
-	xwindow      C.Window
+	display     *C.Display
+	screen      C.int
+	xwindow     C.Window
+	drawCounter uint
 }
 
 func (self *Window) Parent() View {
@@ -39,20 +41,20 @@ func (self *Window) Parent() View {
 
 func (self *Window) SetLayout(layout Layout) {
 	self.layout = layout
-} 
+}
 
 func (self *Window) GetLayout() Layout {
 	return self.layout
-} 
+}
 
 func (self *Window) Surface() *Surface {
 	return self.surface
 }
 
-func (self *Window) SetText(name string) {
+func (self *Window) SetName(name string) {
 	n := C.CString(name)
 	defer C.free(unsafe.Pointer(n))
-	self.text = name
+	self.name = name
 	C.XStoreName(self.display, self.xwindow, n)
 }
 
@@ -73,16 +75,23 @@ func (self *Window) Draw(surface *Surface) {
 		self.layout.Draw(surface)
 	}
 }
-	
+
 func (self *Window) DrawSelf() {
-	t := time.Now()
+
+	var before time.Time
+	if DEBUG_DRAW_ALL {
+		before = time.Now()
+	}
+
 	s := NewSurface(FORMAT_ARGB32, int(self.width), int(self.height))
-	s.SetSourceRGBA(color.White)
-	s.Paint()
 	self.Draw(s)
+	s.Destroy()
 	self.surface.SetSourceSurface(s, 0, 0)
 	self.surface.Paint()
-	fmt.Println("Draw Window:",  time.Since(t))
+	
+	if DEBUG_DRAW_ALL {
+		fmt.Println("Draw Window:", time.Since(before))
+	}
 }
 
 func NewWindow(name string, x, y, w, h uint) *Window {
@@ -90,8 +99,8 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	var height C.uint = C.uint(h)
 	var ev C.XEvent
 
-	/* First connect to the display server, as specified in the DISPLAY
-	environment variable. */
+	// First connect to the display server, as specified in
+	// the DISPLAY environment variable.
 	dpy := C.XOpenDisplay(nil)
 
 	if dpy == nil {
@@ -99,28 +108,61 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 		return nil
 	}
 
+	if DEBUG_XVISUAL_INFO {
+		var visual_template C.XVisualInfo
+		var nxvisuals C.int
+		visual_list := C.XGetVisualInfo(dpy, C.VisualScreenMask, &visual_template, &nxvisuals)
+		var visualList []C.XVisualInfo
+		sliceHeader := (*reflect.SliceHeader)((unsafe.Pointer(&visualList)))
+		sliceHeader.Cap = int(nxvisuals)
+		sliceHeader.Len = int(nxvisuals)
+		sliceHeader.Data = uintptr(unsafe.Pointer(&visual_list))
+	
+		for i := 0; i < len(visualList); i++ {
+			if uint(visualList[i].depth) > 8 {
+				fmt.Printf("  %d: visual:%d class:%d TrueColor:%t depth:%d\n", i, int(visualList[i].visualid), visualList[i].class, bool(visualList[i].class == C.TrueColor), uint(visualList[i].depth))
+			}
+		}
+	}
+
+	var vinfo C.XVisualInfo
+	result := C.XMatchVisualInfo(dpy, C.XDefaultScreen(dpy), 24, C.TrueColor, &vinfo)
+	if result == 1 {
+		fmt.Println("Cannot create 32bit depth display.", result)
+	}
+
+	var attr C.XSetWindowAttributes
+	attr.colormap = C.XCreateColormap(dpy, C.XDefaultRootWindow(dpy), vinfo.visual, C.AllocNone)
+	attr.border_pixel = 0xFFFF00FF
+	attr.background_pixel = 0xFFFF00FF
+	attr.event_mask = C.ExposureMask |
+		C.ButtonPressMask |
+		C.ButtonReleaseMask |
+		C.KeyPressMask |
+		C.KeyReleaseMask |
+		C.PointerMotionMask |
+		C.EnterWindowMask |
+		C.LeaveWindowMask |
+		C.StructureNotifyMask
+
 	/* these are macros that pull useful data out of the display object */
 	/* we use these bits of info enough to want them in their own variables */
 	screen_num := C.XDefaultScreen(dpy)
-	background := C.XBlackPixel(dpy, screen_num)
-	border := C.XWhitePixel(dpy, screen_num)
 
-	win := C.XCreateSimpleWindow(dpy, C.XDefaultRootWindow(dpy), /* display, parent */
-		0, 0, /* x, y: the window manager will place the window elsewhere */
-		width, height, /* width, height */
-		2, border, /* border width & colour, unless you have a window manager */
-		background) /* background colour */
+	win := C.XCreateWindow(dpy, C.XDefaultRootWindow(dpy), 0, 0, 300, 200, 0, vinfo.depth, C.InputOutput, vinfo.visual, C.CWColormap|C.CWBorderPixel, &attr)
+
+	C.XSync(dpy, C.True)
 
 	/* tell the display server what kind of events we would like to see */
-	C.XSelectInput(dpy, win, C.ExposureMask        |
-							 C.ButtonPressMask     |
-							 C.ButtonReleaseMask   |
-							 C.KeyPressMask        |
-							 C.KeyReleaseMask      |
-							 C.PointerMotionMask   |
-							 C.EnterWindowMask     |
-							 C.LeaveWindowMask     |
-							 C.StructureNotifyMask )
+	C.XSelectInput(dpy, win, C.ExposureMask|
+		C.ButtonPressMask|
+		C.ButtonReleaseMask|
+		C.KeyPressMask|
+		C.KeyReleaseMask|
+		C.PointerMotionMask|
+		C.EnterWindowMask|
+		C.LeaveWindowMask|
+		C.StructureNotifyMask)
 
 	/* okay, put the window on the screen, please */
 	C.XMapWindow(dpy, win)
@@ -130,16 +172,16 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	surface := &Surface{surface: s, context: ctx}
 
 	window := new(Window)
-	window.display  = dpy
-	window.screen   = screen_num
-	window.xwindow  = win
-	window.surface  = surface 
-	window.text     = name
-	window.width    = float64(width)
-	window.height   = float64(height)
-	window.layout   = nil
-	
-	window.SetText(name)
+	window.display = dpy
+	window.screen = screen_num
+	window.xwindow = win
+	window.surface = surface
+	window.name = name
+	window.width = float64(width)
+	window.height = float64(height)
+	window.layout = nil
+
+	window.SetName(name)
 	runtime.SetFinalizer(window, func(w *Window) {
 		C.XCloseDisplay(window.display)
 	})
@@ -165,23 +207,32 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				}
 
 			case C.Expose:
-//				event := (*C.XExposeEvent)(unsafe.Pointer(&ev[0]))
-//				if (event.count > 0) {
-//        			continue;
-//        		}
+				event := (*C.XExposeEvent)(unsafe.Pointer(&ev[0]))
+				if event.count > 0 {
+					continue
+				}
 				window.DrawSelf()
 
 			case C.MotionNotify:
 				//view.DispatchMouseExit()
 
 			case C.ButtonPress:
-			
+
 			default:
-				//C.XFlush(dpy)
+				C.XFlush(dpy)
 			}
 		}
 	}
 	go eventLoop()
+	//	ticker := time.NewTicker(200 * time.Millisecond)
+	//    go func() {
+	//	    for {
+	//	       select {
+	//	        case <- ticker.C:
+	//	        	window.DrawSelf()
+	//	        }
+	//    	}
+	// 	}()
 
 	return window
 }

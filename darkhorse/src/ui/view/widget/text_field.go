@@ -34,15 +34,9 @@ func (self *TextField) Draw(s *view.Surface) {
 	s.Fill()
 	p.Destroy()
 	
-//	tkns := text.Tokenize(self.Text())
-//	s.SelectFontFace("Sans", view.FONT_SLANT_NORMAL, view.FONT_WEIGHT_NORMAL)
-//	s.SetFontSize(16)
-////	te := surface.TextExtents(self.Text())
-//	s.SetSourceRGB(1, 2, 1)
-	
 	s.SetSourceRGB(.4, .4, .4)
 	s.SelectFontFace("Sans", view.FONT_SLANT_NORMAL, view.FONT_WEIGHT_NORMAL)
 	s.SetFontSize(16)
 	s.MoveTo(0, 15)
-	s.ShowText(self.Text())
+	s.ShowText(self.Name())
 }

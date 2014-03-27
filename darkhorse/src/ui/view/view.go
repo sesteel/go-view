@@ -12,8 +12,8 @@ type Drawer interface {
 type View interface {
 	Parent() View
 	Surface() *Surface
-	SetText(string) 
-	Text() string
+	SetName(string) 
+	Name() string
 	Position() (float64, float64)
 	SetSize(float64, float64) 
 	Size() (float64, float64)
@@ -27,7 +27,7 @@ type View interface {
 type DefaultView struct {
 	parent             View
 	surface            *Surface
-	text               string
+	name               string
 	width              float64
 	height             float64
 	x, y               float64
@@ -48,12 +48,12 @@ func (self *DefaultView) Surface() *Surface {
 	return self.surface
 }
 
-func (self *DefaultView) SetText(text string) {
-	self.text = text
+func (self *DefaultView) SetName(name string) {
+	self.name = name
 }
 
-func (self *DefaultView) Text() string {
-	return self.text
+func (self *DefaultView) Name() string {
+	return self.name
 }
 
 func (self *DefaultView) SetSize(width, height float64) {

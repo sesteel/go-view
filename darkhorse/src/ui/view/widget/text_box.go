@@ -15,7 +15,7 @@ func NewTextBox(parent view.View, text string) *TextBox {
 }
 
 func (self *TextBox) Draw(s *view.Surface) {
-	tkns := tokenizer.Tokenize(self.Text())
+	tkns := tokenizer.Tokenize(self.Name())
 	
 	// draw outline
 	s.SetAntialias(view.ANTIALIAS_NONE)
@@ -36,11 +36,8 @@ func (self *TextBox) Draw(s *view.Surface) {
 	
 	if height > float64(s.GetHeight()) {
 		ratio := float64(s.GetHeight()) / height
-		s.SetSourceRGBA(color.HexRGBA(0x00000010))
-		s.Rectangle(float64(s.GetWidth()) - 10, 0, 10, float64(s.GetHeight()))
-		s.Fill()
-		s.SetSourceRGBA(color.HexRGBA(0x00000022))
-		s.RoundedRectangle(float64(s.GetWidth()) - 8, 50, 6, float64(s.GetHeight()) * ratio, 1, 1, 1, 1)
+		s.SetSourceRGBA(color.HexRGBA(0x00000025))
+		s.RoundedRectangle(float64(s.GetWidth()) - 8, 50, 6, float64(s.GetHeight()) * ratio, 2, 2, 2, 2)
 		s.Fill()
 	}
 }

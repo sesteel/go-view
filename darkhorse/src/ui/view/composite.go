@@ -37,14 +37,6 @@ func (self *CompositeView) GetLayout() Layout {
 	return self.layout
 }
 
-func (self *CompositeView) SetText(text string) {
-	self.text = text
-}
-
-func (self *CompositeView) Text() string {
-	return self.text
-}
-
 func (self *CompositeView) SetSize(width, height float64) {
 	self.width = width
 	self.height = height

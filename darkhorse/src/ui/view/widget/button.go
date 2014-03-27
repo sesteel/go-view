@@ -37,6 +37,6 @@ func (self *Button) Draw(s *view.Surface) {
 	s.SetFontSize(14)
 	s.MoveTo(25, 15)
 	s.SetSourceRGBA(color.Gray5)
-	s.ShowText(self.Text())
+	s.ShowText(self.Name())
 }
 

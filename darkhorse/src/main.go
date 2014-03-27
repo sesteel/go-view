@@ -12,14 +12,11 @@ func main() {
 	var waitOnExit chan bool
 	fmt.Println(color.HexRGBA(0xff77ff00))
 	win := view.NewWindow("Test Application", 0, 0, 800, 600)
-	win.SetText("Test App")
+	win.SetName("Test App")
 	win.SetSize(600, 400)
 	l := layout.NewAbsolute(win)
-//	l.Add(widget.NewButton(win, "Close"), 10, 10)
-//	l.Add(widget.NewTextField(win, "abc"), 10, 40)
 	tb := widget.NewTextBox(win, msg)
 	l.Add(tb, 0, 0)
-//	l.Add(widget.NewButton(win, "1234"), 20, 100)
 	win.SetLayout(l)
 	<-waitOnExit
 }
