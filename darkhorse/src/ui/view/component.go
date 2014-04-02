@@ -6,10 +6,13 @@ import (
 
 type Component interface {
 	View
+	Focus() bool
+	SetFocus(bool)
 }
 
 type DefaultComponent struct {
 	DefaultView
+	focus bool
 }
 
 // NewComponent creates a new DefaultComponent.  DefaultComponent
@@ -25,8 +28,17 @@ func NewComponent(parent View, name string) *DefaultComponent {
 	c.parent  = parent.Parent()
 	c.style   = NewStyle()
 	c.name    = name
-	c.width, c.height = 100, 20
+	c.focus   = false
+	c.width, c.height = 10, 10
 	return c
+}
+
+func (self *DefaultComponent) SetFocus(focus bool) {
+	self.focus = focus
+}
+
+func (self *DefaultComponent) Focus() bool {
+	return self.focus
 }
 
 func (self *DefaultComponent) Draw(surface *Surface) {

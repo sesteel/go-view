@@ -5,18 +5,62 @@ import (
 	"ui/view/color"
 	"ui/view/layout"
 	"ui/view/widget"
+	"ui/view/event"
 	"fmt"
 )
 
 func main() {
 	var waitOnExit chan bool
 	fmt.Println(color.HexRGBA(0xff77ff00))
-	win := view.NewWindow("Test Application", 0, 0, 800, 600)
+	win := view.NewWindow("Mouse Integration Test", 0, 0, 800, 600)
 	win.SetName("Test App")
 	win.SetSize(600, 400)
 	l := layout.NewAbsolute(win)
 	tb := widget.NewTextBox(win, msg)
-	l.Add(tb, 0, 0)
+	
+	tb.AddMouseEnterHandler(func (mp event.Mouse){
+		fmt.Println("Mouse Enter:", mp.X, mp.Y)
+	})
+	
+	tb.AddMouseExitHandler(func (mp event.Mouse){
+		fmt.Println("Mouse Exit:", mp.X, mp.Y)
+	})
+	
+	tb.AddMousePositionHandler(func (mp event.Mouse){
+		fmt.Println("Mouse Position:", mp.X, mp.Y)
+	})
+	
+	tb.AddMouseButtonPressHandler(func (mp event.Mouse){
+		switch mp.Button {
+			case event.MOUSE_BUTTON_LEFT:
+				fmt.Println("LEFT PRESS")
+			case event.MOUSE_BUTTON_MIDDLE:
+				fmt.Println("MIDDLE PRESS")
+			case event.MOUSE_BUTTON_RIGHT:
+				fmt.Println("RIGHT PRESS")
+		}
+	})
+	
+	tb.AddMouseButtonReleaseHandler(func (mp event.Mouse){
+		switch mp.Button {
+			case event.MOUSE_BUTTON_LEFT:
+				fmt.Println("LEFT RELEASE")
+			case event.MOUSE_BUTTON_MIDDLE:
+				fmt.Println("MIDDLE RELEASE")
+			case event.MOUSE_BUTTON_RIGHT:
+				fmt.Println("RIGHT RELEASE")
+		}
+	})
+	
+	tb.AddMouseWheelUpHandler(func (mp event.Mouse) {
+		fmt.Println("UP")
+	})
+	
+	tb.AddMouseWheelDownHandler(func (mp event.Mouse) {
+		fmt.Println("DOWN")
+	})
+	
+	l.Add(tb, view.Bounds{0,0,view.Size{300,400}}) 
 	win.SetLayout(l)
 	<-waitOnExit
 }

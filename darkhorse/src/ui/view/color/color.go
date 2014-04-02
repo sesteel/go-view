@@ -88,3 +88,7 @@ func HexRGBA(hex uint32) RGBA {
 		clritof(uint8(hex >> 8 & 0xFF)),
 		clritof(uint8(hex & 0xFF))}
 }
+
+// TODO RGBAToHSBA
+// TODO RGBAToHSLA
+// TODO RGBAToHSVA

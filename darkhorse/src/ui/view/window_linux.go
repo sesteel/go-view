@@ -20,6 +20,7 @@ import (
 	"runtime"
 	"time"
 	"ui/view/color"
+	"ui/view/event"
 	"unsafe"
 )
 
@@ -127,8 +128,8 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 	var vinfo C.XVisualInfo
 	result := C.XMatchVisualInfo(dpy, C.XDefaultScreen(dpy), 24, C.TrueColor, &vinfo)
-	if result == 1 {
-		fmt.Println("Cannot create 32bit depth display.", result)
+	if result == 0 {
+		fmt.Println("Cannot create display at desired depth of 24.")
 	}
 
 	var attr C.XSetWindowAttributes
@@ -197,27 +198,60 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			eventType := ev[0]
 			switch eventType {
 			case C.ConfigureNotify:
-				event := (*C.XConfigureEvent)(unsafe.Pointer(&ev[0]))
-				if width != C.uint(event.width) || height != C.uint(event.height) {
-					width = C.uint(event.width)
-					height = C.uint(event.height)
+				evt := (*C.XConfigureEvent)(unsafe.Pointer(&ev[0]))
+				if width != C.uint(evt.width) || height != C.uint(evt.height) {
+					width = C.uint(evt.width)
+					height = C.uint(evt.height)
 					window.width = float64(width)
 					window.height = float64(height)
-					C.cairo_xlib_surface_set_size(s, event.width, event.height)
+					C.cairo_xlib_surface_set_size(s, evt.width, evt.height)
 				}
 
 			case C.Expose:
-				event := (*C.XExposeEvent)(unsafe.Pointer(&ev[0]))
-				if event.count > 0 {
+				evt := (*C.XExposeEvent)(unsafe.Pointer(&ev[0]))
+				if evt.count > 0 {
 					continue
 				}
 				window.DrawSelf()
 
 			case C.MotionNotify:
-				//view.DispatchMouseExit()
-
+				evt := (*C.XMotionEvent)(unsafe.Pointer(&ev[0]))
+				window.MousePosition(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				
+			case C.EnterNotify:
+				evt := (*C.XCrossingEvent)(unsafe.Pointer(&ev[0]))
+				window.MouseEnter(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				
+			case C.LeaveNotify:
+				evt := (*C.XCrossingEvent)(unsafe.Pointer(&ev[0]))
+				window.MouseExit(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				
 			case C.ButtonPress:
-
+				evt := (*C.XButtonEvent)(unsafe.Pointer(&ev[0]))
+				switch evt.button {
+					case 1:
+						window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
+					case 2:
+						window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
+					case 3:
+						window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
+					case 4:
+						window.MouseWheelUp(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+					case 5:
+						window.MouseWheelDown(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				}
+				
+			case C.ButtonRelease:
+				evt := (*C.XButtonEvent)(unsafe.Pointer(&ev[0]))
+				switch evt.button {
+					case 1:
+						window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
+					case 2:
+						window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
+					case 3:
+						window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
+				}
+			
 			default:
 				C.XFlush(dpy)
 			}

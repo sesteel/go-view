@@ -1,8 +1,7 @@
 package view
 
 import (
-	"ui/event"
-//	"ui/view/color"
+	"ui/view/event"
 )
 
 type Composite interface {
@@ -14,7 +13,7 @@ type Composite interface {
 type CompositeView struct {
 	DefaultView
 	layout  Layout
-	event.EventDispatcher
+	event.MouseEventDispatcher
 }
 
 func (self *CompositeView) Parent() View {
@@ -67,4 +66,39 @@ func (self *CompositeView) Draw(surface *Surface) {
 	if self.layout != nil {
 		self.layout.Draw(surface)
 	}
+}
+
+func (self *CompositeView) MouseEnter(me event.Mouse) {
+	self.MouseEventDispatcher.MouseEnter(me)
+	self.layout.MouseEnter(me)
+}
+
+func (self *CompositeView) MouseExit(me event.Mouse) {
+	self.MouseEventDispatcher.MouseExit(me)
+	self.layout.MouseExit(me)
+}
+
+func (self *CompositeView) MousePosition(me event.Mouse) {
+	self.MouseEventDispatcher.MousePosition(me)
+	self.layout.MousePosition(me)
+}
+
+func (self *CompositeView) MouseWheelUp(me event.Mouse) {
+	self.MouseEventDispatcher.MouseWheelUp(me)
+	self.layout.MouseWheelUp(me)
+}
+
+func (self *CompositeView) MouseWheelDown(me event.Mouse) {
+	self.MouseEventDispatcher.MouseWheelDown(me)
+	self.layout.MouseWheelDown(me)
+}
+
+func (self *CompositeView) MouseButtonPress(me event.Mouse) {
+	self.MouseEventDispatcher.MouseButtonPress(me)
+	self.layout.MouseButtonPress(me)
+}
+
+func (self *CompositeView) MouseButtonRelease(me event.Mouse) {
+	self.MouseEventDispatcher.MouseButtonRelease(me)
+	self.layout.MouseButtonRelease(me)
 }

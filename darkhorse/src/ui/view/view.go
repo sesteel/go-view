@@ -2,38 +2,38 @@
 package view
 
 import (
-	"ui/event"
+	"ui/view/event"
 )
 
 type Drawer interface {
-	Draw(*Surface)//Bounds, ScrollOffset)
+	Draw(*Surface) //Bounds, ScrollOffset)
 }
 
 type View interface {
 	Parent() View
 	Surface() *Surface
-	SetName(string) 
+	SetName(string)
 	Name() string
 	Position() (float64, float64)
-	SetSize(float64, float64) 
+	SetSize(float64, float64)
 	Size() (float64, float64)
-	SetStyle(Style) 
+	SetStyle(Style)
 	Style() Style
 	Drawer
-	AddMouseEnterHandler(func(event.MouseEnter))
-	AddMouseExitHandler(func(event.MouseExit))
+	event.MouseNotifier
+	event.MouseHandler
 }
 
 type DefaultView struct {
-	parent             View
-	surface            *Surface
-	name               string
-	width              float64
-	height             float64
-	x, y               float64
-	focus              bool
-	style              Style
-	event.EventDispatcher
+	parent  View
+	surface *Surface
+	name    string
+	width   float64
+	height  float64
+	x, y    float64
+	focus   bool
+	style   Style
+	event.MouseEventDispatcher
 }
 
 func (self *DefaultView) Parent() View {
