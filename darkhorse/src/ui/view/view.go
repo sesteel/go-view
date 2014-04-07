@@ -3,13 +3,16 @@ package view
 
 import (
 	"ui/view/event"
+	"fmt"
 )
 
 type Drawer interface {
 	Draw(*Surface) //Bounds, ScrollOffset)
+	Redraw()
 }
 
 type View interface {
+	SetParent(View)
 	Parent() View
 	Surface() *Surface
 	SetName(string)
@@ -34,6 +37,10 @@ type DefaultView struct {
 	focus   bool
 	style   Style
 	event.MouseEventDispatcher
+}
+
+func (self *DefaultView) SetParent(parent View) {
+	self.parent = parent
 }
 
 func (self *DefaultView) Parent() View {
@@ -75,4 +82,13 @@ func (self *DefaultView) Style() Style {
 
 func (self *DefaultView) Draw(surface *Surface) {
 	// default drawing does here
+}
+
+func (self *DefaultView) Redraw() {
+	if DEBUG {
+		fmt.Println("View.Redraw()")
+	}
+	if self.parent != nil {
+		self.parent.Redraw()
+	}
 }

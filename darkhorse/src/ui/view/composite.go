@@ -63,9 +63,8 @@ func (self *CompositeView) Draw(surface *Surface) {
 //	surface.Fill()
 //	p.Destroy()
 	
-	if self.layout != nil {
-		self.layout.Draw(surface)
-	}
+	self.layout.Draw(surface)
+	
 }
 
 func (self *CompositeView) MouseEnter(me event.Mouse) {

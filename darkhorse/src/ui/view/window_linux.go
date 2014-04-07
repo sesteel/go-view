@@ -1,8 +1,8 @@
 // +build linux,!goci
 package view
 
-// #cgo pkg-config: cairo x11
-// #include <X11/Xlib.h>
+// #cgo pkg-config: cairo x11  
+// #include <X11/Xlib.h> 
 // #include <X11/Xutil.h>
 // #include <X11/Xresource.h>
 // #include <cairo/cairo-xlib.h>
@@ -34,10 +34,15 @@ type Window struct {
 	screen      C.int
 	xwindow     C.Window
 	drawCounter uint
+	eventLoop   func()
 }
 
 func (self *Window) Parent() View {
 	return nil
+}
+
+func (self *Window) Start() {
+	go self.eventLoop()
 }
 
 func (self *Window) SetLayout(layout Layout) {
@@ -65,35 +70,40 @@ func (self *Window) SetSize(width, height float64) {
 	C.cairo_xlib_surface_set_size(self.surface.surface, C.int(self.width), C.int(self.height))
 	C.cairo_xlib_surface_set_drawable(self.surface.surface, C.Drawable(self.xwindow), C.int(self.width), C.int(self.height))
 	C.XResizeWindow(self.display, self.xwindow, C.uint(self.width), C.uint(self.height))
-	self.DrawSelf()
+	self.Redraw()
 }
 
 func (self *Window) Draw(surface *Surface) {
-	if self.layout == nil {
-		surface.SetSourceRGBA(color.HexRGBA(0xFFFFFFFF))
-		surface.Paint()
-	} else {
+//	surface.SetSourceRGBA(self.Style().Background())
+	_, h := self.Size()
+	p := NewLinearPattern(0, 0, 0, h)
+	defer p.Destroy()
+	p.AddColorStop(0, color.Gray5)
+	p.AddColorStop(1, color.Gray6)
+	surface.SetSource(p)
+	surface.Paint()
+	if self.layout != nil {
 		self.layout.Draw(surface)
 	}
 }
 
-func (self *Window) DrawSelf() {
-
+func (self *Window) Redraw() {
 	var before time.Time
 	if DEBUG_DRAW_ALL {
 		before = time.Now()
 	}
 
 	s := NewSurface(FORMAT_ARGB32, int(self.width), int(self.height))
+	defer s.Destroy()
 	self.Draw(s)
-	s.Destroy()
 	self.surface.SetSourceSurface(s, 0, 0)
 	self.surface.Paint()
 	
 	if DEBUG_DRAW_ALL {
 		fmt.Println("Draw Window:", time.Since(before))
-	}
+	}	
 }
+
 
 func NewWindow(name string, x, y, w, h uint) *Window {
 	var width C.uint = C.uint(w)
@@ -181,13 +191,14 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	window.width = float64(width)
 	window.height = float64(height)
 	window.layout = nil
+	window.style = NewStyle()
 
 	window.SetName(name)
 	runtime.SetFinalizer(window, func(w *Window) {
 		C.XCloseDisplay(window.display)
 	})
 
-	window.DrawSelf()
+	window.Redraw()
 
 	eventLoop := func() {
 		/* as each event that we asked about occurs, we respond.  In this
@@ -212,7 +223,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				if evt.count > 0 {
 					continue
 				}
-				window.DrawSelf()
+				window.Redraw()
 
 			case C.MotionNotify:
 				evt := (*C.XMotionEvent)(unsafe.Pointer(&ev[0]))
@@ -257,16 +268,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			}
 		}
 	}
-	go eventLoop()
-	//	ticker := time.NewTicker(200 * time.Millisecond)
-	//    go func() {
-	//	    for {
-	//	       select {
-	//	        case <- ticker.C:
-	//	        	window.DrawSelf()
-	//	        }
-	//    	}
-	// 	}()
+	window.eventLoop = eventLoop
 
 	return window
 }

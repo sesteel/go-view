@@ -1,7 +1,6 @@
 // +build !goci
 package view
 
-// #include <cairo/cairo-xlib.h>
 // #include <cairo/cairo-pdf.h>
 // #include <cairo/cairo-ps.h>
 // #include <cairo/cairo-svg.h>
@@ -16,6 +15,7 @@ import (
 	"unsafe"
 	"ui/view/extimage"
 	"ui/view/color"
+	"runtime"
 )
 
 // Golang struct to hold both a cairo surface and a cairo context
@@ -26,6 +26,7 @@ type Surface struct {
 
 func (self *Surface) Destroy() {
 	C.cairo_surface_destroy(self.surface)
+	C.cairo_destroy(self.context)
 }
 
 func (self *Surface) GetDevice() *Device {
@@ -36,12 +37,19 @@ func (self *Surface) GetDevice() *Device {
 
 func NewSurface(format Format, width, height int) *Surface {
 	s := C.cairo_image_surface_create(C.cairo_format_t(format), C.int(width), C.int(height))
-	return &Surface{surface: s, context: C.cairo_create(s)}
+	surface := &Surface{surface: s, context: C.cairo_create(s)}
+	runtime.SetFinalizer(surface, func(d *Surface) {
+		d.Finish()
+	})
+	return surface
 }
 
 // NewSurfaceFromC creates a new surface from C data types.
 // This is useful, if you already obtained a surface by
 // using a C library, for example an XCB surface.
+// 
+// The returned surface will not be collected by the 
+// garbage collector.
 func NewSurfaceFromC(s *C.cairo_surface_t, c *C.cairo_t) *Surface {
 	return &Surface{surface: s, context: c}
 }
@@ -50,7 +58,11 @@ func NewSurfaceFromPNG(filename string) *Surface {
 	cs := C.CString(filename)
 	defer C.free(unsafe.Pointer(cs))
 	s := C.cairo_image_surface_create_from_png(cs)
-	return &Surface{surface: s, context: C.cairo_create(s)}
+	surface := &Surface{surface: s, context: C.cairo_create(s)}
+	runtime.SetFinalizer(surface, func(d *Surface) {
+		d.Finish()
+	})
+	return surface
 }
 
 func NewSurfaceFromImage(img image.Image) *Surface {
@@ -73,7 +85,11 @@ func NewPDFSurface(filename string, widthInPoints, heightInPoints float64, versi
 	defer C.free(unsafe.Pointer(cs))
 	s := C.cairo_pdf_surface_create(cs, C.double(widthInPoints), C.double(heightInPoints))
 	C.cairo_pdf_surface_restrict_to_version(s, C.cairo_pdf_version_t(version))
-	return &Surface{surface: s, context: C.cairo_create(s)}
+	surface := &Surface{surface: s, context: C.cairo_create(s)}
+	runtime.SetFinalizer(surface, func(d *Surface) {
+		d.Finish()
+	})
+	return surface
 }
 
 func NewPSSurface(filename string, widthInPoints, heightInPoints float64, level PSLevel) *Surface {
@@ -81,7 +97,11 @@ func NewPSSurface(filename string, widthInPoints, heightInPoints float64, level 
 	defer C.free(unsafe.Pointer(cs))
 	s := C.cairo_ps_surface_create(cs, C.double(widthInPoints), C.double(heightInPoints))
 	C.cairo_ps_surface_restrict_to_level(s, C.cairo_ps_level_t(level))
-	return &Surface{surface: s, context: C.cairo_create(s)}
+	surface := &Surface{surface: s, context: C.cairo_create(s)}
+	runtime.SetFinalizer(surface, func(d *Surface) {
+		d.Finish()
+	})
+	return surface
 }
 
 func NewSVGSurface(filename string, widthInPoints, heightInPoints float64, version SVGVersion) *Surface {
@@ -89,7 +109,11 @@ func NewSVGSurface(filename string, widthInPoints, heightInPoints float64, versi
 	defer C.free(unsafe.Pointer(cs))
 	s := C.cairo_svg_surface_create(cs, C.double(widthInPoints), C.double(heightInPoints))
 	C.cairo_svg_surface_restrict_to_version(s, C.cairo_svg_version_t(version))
-	return &Surface{surface: s, context: C.cairo_create(s)}
+	surface := &Surface{surface: s, context: C.cairo_create(s)}
+	runtime.SetFinalizer(surface, func(d *Surface) {
+		d.Finish()
+	})
+	return surface
 }
 
 func (self *Surface) Save() {
@@ -435,6 +459,7 @@ func (self *Surface) ShowText(text string) {
 	C.cairo_show_text(self.context, cs)
 	C.free(unsafe.Pointer(cs))
 }
+
 
 //func (self *Surface) ShowGlyphs(glyphs []Glyph) {
 //	panic("not implemented") // todo

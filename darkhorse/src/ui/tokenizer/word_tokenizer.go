@@ -1,7 +1,7 @@
 
 // line 1 "word_tokenizer.rl"
 package tokenizer
-
+import "C"
 //
 // The Ragel version should support the -G0 target as G2 creates errors
 //  ~/bin/ragel-6.8/ragel/ragel -Z -G0 tokenizer.rl -o tokenizer.go

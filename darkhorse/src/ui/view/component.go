@@ -25,7 +25,7 @@ type DefaultComponent struct {
 // to support  
 func NewComponent(parent View, name string) *DefaultComponent {
 	c := new(DefaultComponent)
-	c.parent  = parent.Parent()
+	c.parent  = parent
 	c.style   = NewStyle()
 	c.name    = name
 	c.focus   = false

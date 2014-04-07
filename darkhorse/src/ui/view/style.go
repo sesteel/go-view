@@ -4,6 +4,23 @@ import (
 	"ui/view/color"
 )
 
+type OverflowXStrategy int
+const (
+	STYLE_OVERFLOW_X_NONE OverflowXStrategy = iota
+	STYLE_OVERFLOW_X_SCROLL
+	STYLE_OVERFLOW_X_SHADE
+	STYLE_OVERFLOW_X_FADE
+)
+
+type OverflowYStrategy int
+const (
+	STYLE_OVERFLOW_Y_NONE OverflowYStrategy = iota
+	STYLE_OVERFLOW_Y_SCROLL
+	STYLE_OVERFLOW_Y_WRAP
+	STYLE_OVERFLOW_Y_SHADE
+	STYLE_OVERFLOW_Y_FADE
+)
+
 var defaultFontOptions *FontOptions
 
 func init() {
@@ -37,6 +54,8 @@ type Style interface {
 	SetPaddingBottom(float64)
 	SetPaddingLeft(float64)
 	SetPaddingRight(float64)
+	SetOverflowX(OverflowXStrategy)
+	SetOverflowY(OverflowYStrategy)
 
 	Antialias() bool
 	FontName() string
@@ -58,6 +77,8 @@ type Style interface {
 	PaddingBottom() float64
 	PaddingLeft() float64
 	PaddingRight() float64
+	OverflowX() OverflowXStrategy
+	OverflowY() OverflowYStrategy
 }
 
 type defaultStyle struct {
@@ -81,6 +102,8 @@ type defaultStyle struct {
 	paddingBottom     float64
 	paddingLeft       float64
 	paddingRight      float64
+	overflowX         OverflowXStrategy
+	overflowY         OverflowYStrategy
 }
 
 func NewStyle() Style {
@@ -140,6 +163,14 @@ func (self *defaultStyle) SetPadding(padding float64) {
 	self.paddingRight = padding
 }
 
+func (self *defaultStyle) SetOverflowX(overflowX OverflowXStrategy) {
+	self.overflowX = overflowX
+}
+
+func (self *defaultStyle) SetOverflowY(overflowY OverflowYStrategy) {
+	self.overflowY = overflowY
+}
+
 func (self *defaultStyle) Antialias() bool               { return self.antialias }
 func (self *defaultStyle) FontName() string              { return self.fontName }
 func (self *defaultStyle) FontWeight() int               { return self.fontWeight }
@@ -160,3 +191,5 @@ func (self *defaultStyle) PaddingTop() float64           { return self.paddingTo
 func (self *defaultStyle) PaddingBottom() float64        { return self.paddingBottom }
 func (self *defaultStyle) PaddingLeft() float64          { return self.paddingLeft }
 func (self *defaultStyle) PaddingRight() float64         { return self.paddingRight }
+func (self *defaultStyle) OverflowX() OverflowXStrategy  { return self.overflowX }
+func (self *defaultStyle) OverflowY() OverflowYStrategy  { return self.overflowY }

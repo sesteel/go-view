@@ -30,8 +30,16 @@ func (self *Absolute) Add(d view.View, bounds view.Bounds) {
 func (self *Absolute) Draw(s *view.Surface) {
 	for i := 0; i < len(self.children); i++ {
 		g := self.children[i]
-		g.view.Draw(s)
+		ns := view.NewSurface(view.FORMAT_ARGB32, int(g.bounds.Width), int(g.bounds.Height))
+		g.view.Draw(ns)
+		s.SetSourceSurface(ns, g.bounds.X, g.bounds.Y)
+		s.Paint()
+		ns.Destroy()
 	}
+}
+
+func (self *Absolute) Redraw() {
+
 }
 
 func (self *Absolute) MouseEnter(ev event.Mouse) {}

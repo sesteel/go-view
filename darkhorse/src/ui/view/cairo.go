@@ -10,6 +10,7 @@ import "C"
 
 import (
 	"ui/view/color"
+	"runtime"
 )
 
 // cairo_status_t
@@ -356,19 +357,35 @@ type Pattern struct {
 }
 
 func NewRGBPattern(c color.RGBA) *Pattern {
-	return &Pattern{C.cairo_pattern_create_rgb(C.double(c.R), C.double(c.G), C.double(c.B))}
+	p := &Pattern{C.cairo_pattern_create_rgb(C.double(c.R), C.double(c.G), C.double(c.B))}
+	runtime.SetFinalizer(p, func(pattern *Pattern) {
+		pattern.Destroy()
+	})
+	return p
 } 
 
 func NewRGBAPattern(c color.RGBA) *Pattern {
-	return &Pattern{C.cairo_pattern_create_rgba(C.double(c.R), C.double(c.G), C.double(c.B), C.double(c.A))}
+	p := &Pattern{C.cairo_pattern_create_rgba(C.double(c.R), C.double(c.G), C.double(c.B), C.double(c.A))}
+	runtime.SetFinalizer(p, func(pattern *Pattern) {
+		pattern.Destroy()
+	})
+	return p
 } 
 
 func NewLinearPattern(x1, y1, x2, y2 float64) *Pattern {
-	return &Pattern{C.cairo_pattern_create_linear(C.double(x1), C.double(y1), C.double(x2), C.double(y2))}
+	p := &Pattern{C.cairo_pattern_create_linear(C.double(x1), C.double(y1), C.double(x2), C.double(y2))}
+	runtime.SetFinalizer(p, func(pattern *Pattern) {
+		pattern.Destroy()
+	})
+	return p 
 } 
 
 func NewRadialPattern(x1, y1, r1, x2, y2, r2 float64) *Pattern {
-	return &Pattern{C.cairo_pattern_create_radial(C.double(x1), C.double(y1), C.double(r1), C.double(x2), C.double(y2), C.double(r2))}
+	p := &Pattern{C.cairo_pattern_create_radial(C.double(x1), C.double(y1), C.double(r1), C.double(x2), C.double(y2), C.double(r2))}
+	runtime.SetFinalizer(p, func(pattern *Pattern) {
+		pattern.Destroy()
+	})
+	return p
 }
 
 func (self *Pattern) AddColorStop(offset float64, c color.RGBA) {
@@ -376,7 +393,9 @@ func (self *Pattern) AddColorStop(offset float64, c color.RGBA) {
 }
 
 func (self *Pattern) Destroy() {
-	C.cairo_pattern_destroy(self.pattern)
+	if C.cairo_pattern_get_reference_count(self.pattern) > 0 {
+		C.cairo_pattern_destroy(self.pattern)
+	}
 }
 
 
