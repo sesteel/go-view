@@ -30,10 +30,11 @@ func (self *Absolute) Draw(s *view.Surface) {
 	for i := 0; i < len(self.children); i++ {
 		g := self.children[i]
 		ns := view.NewSurface(view.FORMAT_ARGB32, int(g.bounds.Width), int(g.bounds.Height))
+		defer ns.Destroy()
 		g.view.Draw(ns)
 		s.SetSourceSurface(ns, g.bounds.X, g.bounds.Y)
 		s.Paint()
-		ns.Destroy()
+		
 	}
 }
 

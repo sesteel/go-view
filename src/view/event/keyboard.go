@@ -1,11 +1,26 @@
 package event
 
-import ()
+import (
+	. "view/event/key"
+)
+
+var GlobalKeyHandler KeyboardHandler
+
+func DispatchKeyPress(code Key) {
+	keyboard.key = code
+	if GlobalKeyHandler != nil {
+		GlobalKeyHandler.KeyPress(keyboard)
+	}
+	
+	kh, ok := focussedElement.(KeyboardHandler)
+	if ok {
+		kh.KeyPress(keyboard)
+	}
+}
 
 var keyboard defaultKeyboard
-
 type Keyboard interface {
-	Key() rune
+	Key() Key
 	Ctrl() bool
 	Alt() bool
 	Shift() bool
@@ -14,7 +29,7 @@ type Keyboard interface {
 }
 
 type defaultKeyboard struct {
-	key     rune
+	key     Key
 	ctrl    bool
 	alt     bool
 	shift   bool
@@ -22,7 +37,7 @@ type defaultKeyboard struct {
 	command bool
 }
 
-func (self defaultKeyboard) Key() rune {return self.key}
+func (self defaultKeyboard) Key() Key {return self.key}
 func (self defaultKeyboard) Ctrl() bool {return self.ctrl}
 func (self defaultKeyboard) Alt() bool {return self.alt}
 func (self defaultKeyboard) Shift() bool {return self.shift}
@@ -52,7 +67,7 @@ func (self *KeyboardEventDispatcher) RemoveFocusGainedHandler(f func(Keyboard)) 
 	// TODO - implement
 }
 
-func (self *KeyboardEventDispatcher) KeyPress(key rune) {
+func (self *KeyboardEventDispatcher) KeyPress(key Key) {
 	keyboard.key = key
 	for i := 0; i < len(self.keyPressHandlers); i++ {
 		self.keyPressHandlers[i](keyboard)
@@ -67,7 +82,7 @@ func (self *KeyboardEventDispatcher) RemoveKeyReleaseHandler(f func(Keyboard)) {
 	// TODO - implement
 }
 
-func (self *KeyboardEventDispatcher) KeyRelease(key rune) {
+func (self *KeyboardEventDispatcher) KeyRelease(key Key) {
 	keyboard.key = key
 	for i := 0; i < len(self.keyReleaseHandlers); i++ {
 		self.keyReleaseHandlers[i](keyboard)

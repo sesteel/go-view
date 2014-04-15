@@ -5,6 +5,7 @@ package view
 // #include <X11/Xlib.h> 
 // #include <X11/Xutil.h>
 // #include <X11/Xresource.h>
+// #include <X11/keysymdef.h>
 // #include <cairo/cairo-xlib.h>
 // #include <cairo/cairo-pdf.h>
 // #include <cairo/cairo-ps.h>
@@ -21,6 +22,7 @@ import (
 	"time"
 	"view/theme"
 	"view/event"
+	"view/event/key"
 	"unsafe"
 )
 
@@ -262,6 +264,14 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 					case 3:
 						window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
 				}
+			case C.KeyPress:
+				evt := (*C.XKeyEvent)(unsafe.Pointer(&ev[0]))
+				var keysyms_per_keycode_return C.int
+				keysym := C.XGetKeyboardMapping(dpy, (C.KeyCode)(evt.keycode), 1, &keysyms_per_keycode_return);
+				defer C.XFree(unsafe.Pointer(&keysym))
+			    symbol := uint(*keysym)
+				event.DispatchKeyPress(symtokey(symbol))				
+			    fmt.Println("[", *keysym, "]", evt.keycode)
 			
 			default:
 				C.XFlush(dpy)
@@ -272,6 +282,16 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 	return window
 }
+
+func symtokey(symbol uint) key.Key {
+	switch 	symbol {
+		case 0xFF0D: return key.RETURN
+		
+	}
+	return key.NONE
+}
+
+
 
 // NoEventMask				No events wanted
 // KeyPressMask				Keyboard down events wanted

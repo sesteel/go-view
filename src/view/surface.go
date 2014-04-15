@@ -15,7 +15,6 @@ import (
 	"unsafe"
 	"view/extimage"
 	"view/theme"
-	"runtime"
 )
 
 // Golang struct to hold both a cairo surface and a cairo context
@@ -38,9 +37,6 @@ func (self *Surface) GetDevice() *Device {
 func NewSurface(format Format, width, height int) *Surface {
 	s := C.cairo_image_surface_create(C.cairo_format_t(format), C.int(width), C.int(height))
 	surface := &Surface{surface: s, context: C.cairo_create(s)}
-	runtime.SetFinalizer(surface, func(d *Surface) {
-		d.Finish()
-	})
 	return surface
 }
 
@@ -59,9 +55,6 @@ func NewSurfaceFromPNG(filename string) *Surface {
 	defer C.free(unsafe.Pointer(cs))
 	s := C.cairo_image_surface_create_from_png(cs)
 	surface := &Surface{surface: s, context: C.cairo_create(s)}
-	runtime.SetFinalizer(surface, func(d *Surface) {
-		d.Finish()
-	})
 	return surface
 }
 
@@ -86,9 +79,6 @@ func NewPDFSurface(filename string, widthInPoints, heightInPoints float64, versi
 	s := C.cairo_pdf_surface_create(cs, C.double(widthInPoints), C.double(heightInPoints))
 	C.cairo_pdf_surface_restrict_to_version(s, C.cairo_pdf_version_t(version))
 	surface := &Surface{surface: s, context: C.cairo_create(s)}
-	runtime.SetFinalizer(surface, func(d *Surface) {
-		d.Finish()
-	})
 	return surface
 }
 
@@ -98,9 +88,6 @@ func NewPSSurface(filename string, widthInPoints, heightInPoints float64, level 
 	s := C.cairo_ps_surface_create(cs, C.double(widthInPoints), C.double(heightInPoints))
 	C.cairo_ps_surface_restrict_to_level(s, C.cairo_ps_level_t(level))
 	surface := &Surface{surface: s, context: C.cairo_create(s)}
-	runtime.SetFinalizer(surface, func(d *Surface) {
-		d.Finish()
-	})
 	return surface
 }
 
@@ -110,9 +97,6 @@ func NewSVGSurface(filename string, widthInPoints, heightInPoints float64, versi
 	s := C.cairo_svg_surface_create(cs, C.double(widthInPoints), C.double(heightInPoints))
 	C.cairo_svg_surface_restrict_to_version(s, C.cairo_svg_version_t(version))
 	surface := &Surface{surface: s, context: C.cairo_create(s)}
-	runtime.SetFinalizer(surface, func(d *Surface) {
-		d.Finish()
-	})
 	return surface
 }
 

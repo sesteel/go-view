@@ -28,6 +28,13 @@ func NewTextBox(parent view.View, text string) *TextBox {
 		}
 		tb.Redraw()
 	}) 
+	
+	tb.AddMouseWheelUpHandler(func(event.Mouse) {
+		if tb.verticalOffset > 0 {
+			tb.verticalOffset--
+		}
+		tb.Redraw()
+	}) 
 	return tb
 }
 

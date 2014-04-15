@@ -3,17 +3,10 @@ package event
 import (
 )
 
-type KeyUp struct {
-	Key int
-}
-
-type KeyDown struct {
-	KeyUp
-}
-
 type EventDispatcher struct {
 	MouseEventDispatcher
 	FocusEventDispatcher
+	KeyboardEventDispatcher
 }
 
 func (self *EventDispatcher) MouseButtonPress(me Mouse) {
