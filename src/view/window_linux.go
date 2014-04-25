@@ -269,7 +269,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				defer C.XFree(unsafe.Pointer(&keysym))
 				symbol := uint(*keysym)
 				event.DispatchKeyPress(keymap[symbol])
-				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
+//				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
 
 			default:
 				C.XFlush(dpy)
