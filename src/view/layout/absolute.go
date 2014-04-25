@@ -5,21 +5,22 @@ import (
 	"view/event"
 )
 
-type absGroup struct {
-	view view.View
-	bounds view.Bounds
-	mouseIn bool
-}
-
 type Absolute struct {
 	target   view.Composite
 	children []*absGroup
+	current  bool
 }
 
 func NewAbsolute(target view.Composite) *Absolute {
 	l := new(Absolute)
 	l.target = target
 	return l
+}
+
+type absGroup struct {
+	view    view.View
+	bounds  view.Bounds
+	mouseIn bool
 }
 
 func (self *Absolute) Add(d view.View, bounds view.Bounds) {
@@ -34,7 +35,6 @@ func (self *Absolute) Draw(s *view.Surface) {
 		g.view.Draw(ns)
 		s.SetSourceSurface(ns, g.bounds.X, g.bounds.Y)
 		s.Paint()
-		
 	}
 }
 
@@ -54,7 +54,7 @@ func (self *Absolute) MousePosition(ev event.Mouse) {
 			if !g.mouseIn {
 				g.mouseIn = true
 				g.view.MouseEnter(ev)
-			} 
+			}
 		} else if g.mouseIn {
 			g.mouseIn = false
 			g.view.MouseExit(ev)

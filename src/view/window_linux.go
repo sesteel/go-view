@@ -22,7 +22,6 @@ import (
 	"time"
 	"view/theme"
 	"view/event"
-	"view/event/key"
 	"unsafe"
 )
 
@@ -270,8 +269,8 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				keysym := C.XGetKeyboardMapping(dpy, (C.KeyCode)(evt.keycode), 1, &keysyms_per_keycode_return);
 				defer C.XFree(unsafe.Pointer(&keysym))
 			    symbol := uint(*keysym)
-				event.DispatchKeyPress(symtokey(symbol))				
-			    fmt.Println("[", *keysym, "]", evt.keycode)
+				event.DispatchKeyPress(keymap[symbol])				
+			    fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
 			
 			default:
 				C.XFlush(dpy)
@@ -282,16 +281,6 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 	return window
 }
-
-func symtokey(symbol uint) key.Key {
-	switch 	symbol {
-		case 0xFF0D: return key.RETURN
-		
-	}
-	return key.NONE
-}
-
-
 
 // NoEventMask				No events wanted
 // KeyPressMask				Keyboard down events wanted

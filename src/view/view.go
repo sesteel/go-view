@@ -7,7 +7,11 @@ import (
 )
 
 type Drawer interface {
-	Draw(*Surface) //Bounds, ScrollOffset)
+	// Traverses the view heirarchy drawing dirty 
+	// views.
+	Draw(*Surface) 
+	
+	// Marks the dirty path up the view heirarchy.	
 	Redraw()
 }
 
@@ -38,6 +42,7 @@ type DefaultView struct {
 	x, y    float64
 	focus   bool
 	style   Style
+	current bool 
 }
 
 func (self *DefaultView) SetParent(parent View) {
@@ -89,7 +94,9 @@ func (self *DefaultView) Redraw() {
 	if DEBUG {
 		fmt.Println("View.Redraw()")
 	}
+	
 	if self.parent != nil {
 		self.parent.Redraw()
 	}
 }
+

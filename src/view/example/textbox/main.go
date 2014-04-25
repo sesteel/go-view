@@ -14,7 +14,6 @@ func main() {
 	var waitOnExit chan bool
 	fmt.Println(theme.HexRGBA(0xff77ff00))
 	win := view.NewWindow("Mouse Integration Test", 0, 0, 800, 600)
-	win.SetName("Test App")
 	win.SetSize(600, 400)
 	l := layout.NewAbsolute(win)
 	tb := widget.NewTextBox(win, msg)
@@ -71,6 +70,9 @@ func main() {
 		fmt.Println("Focus Lost")
 	})
 	
+	tb.AddKeyPressHandler(func(kb event.Keyboard){
+		fmt.Println("<-->", kb.Char)
+	})
 	l.Add(tb, view.Bounds{0,0,view.Size{300,400}}) 
 	win.SetLayout(l)
 	win.Start()

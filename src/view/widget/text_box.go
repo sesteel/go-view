@@ -35,6 +35,11 @@ func NewTextBox(parent view.View, text string) *TextBox {
 		}
 		tb.Redraw()
 	}) 
+	
+	tb.AddKeyPressHandler(func(k event.Keyboard) {
+		text = k.String() + text
+		tb.tkns = tokenizer.Tokenize(text)
+	})
 	return tb
 }
 

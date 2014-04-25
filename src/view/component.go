@@ -29,7 +29,6 @@ func NewComponent(parent View, name string) *DefaultComponent {
 	c.parent  = parent
 	c.style   = NewStyle()
 	c.name    = name
-	c.focus   = false
 	c.width, c.height = 10, 10
 	return c
 }

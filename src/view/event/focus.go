@@ -1,7 +1,6 @@
 package event
 
 import (
-
 )
 
 var focussedElement interface{}
@@ -13,8 +12,7 @@ func SetFocus(dispatcher FocusHandler) {
 			fe.FocusLost()
 		}
 		focussedElement = dispatcher
-		fe, ok := focussedElement.(FocusHandler)
-		if ok {
+		if fe, ok := focussedElement.(FocusHandler); ok {
 			fe.FocusGained()
 		}
 	}
