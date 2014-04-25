@@ -1,8 +1,8 @@
 // +build linux,!goci
 package view
 
-// #cgo pkg-config: cairo x11  
-// #include <X11/Xlib.h> 
+// #cgo pkg-config: cairo x11
+// #include <X11/Xlib.h>
 // #include <X11/Xutil.h>
 // #include <X11/Xresource.h>
 // #include <X11/keysymdef.h>
@@ -20,9 +20,9 @@ import (
 	"reflect"
 	"runtime"
 	"time"
-	"view/theme"
-	"view/event"
 	"unsafe"
+	"view/event"
+	"view/theme"
 )
 
 func init() {
@@ -75,7 +75,7 @@ func (self *Window) SetSize(width, height float64) {
 }
 
 func (self *Window) Draw(surface *Surface) {
-//	surface.SetSourceRGBA(self.Style().Background())
+	//	surface.SetSourceRGBA(self.Style().Background())
 	_, h := self.Size()
 	p := NewLinearPattern(0, 0, 0, h)
 	defer p.Destroy()
@@ -99,12 +99,11 @@ func (self *Window) Redraw() {
 	self.Draw(s)
 	self.surface.SetSourceSurface(s, 0, 0)
 	self.surface.Paint()
-	
+
 	if DEBUG_DRAW_ALL {
 		fmt.Println("Draw Window:", time.Since(before))
-	}	
+	}
 }
-
 
 func NewWindow(name string, x, y, w, h uint) *Window {
 	var width C.uint = C.uint(w)
@@ -129,7 +128,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 		sliceHeader.Cap = int(nxvisuals)
 		sliceHeader.Len = int(nxvisuals)
 		sliceHeader.Data = uintptr(unsafe.Pointer(&visual_list))
-	
+
 		for i := 0; i < len(visualList); i++ {
 			if uint(visualList[i].depth) > 8 {
 				fmt.Printf("  %d: visual:%d class:%d TrueColor:%t depth:%d\n", i, int(visualList[i].visualid), visualList[i].class, bool(visualList[i].class == C.TrueColor), uint(visualList[i].depth))
@@ -229,49 +228,49 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			case C.MotionNotify:
 				evt := (*C.XMotionEvent)(unsafe.Pointer(&ev[0]))
 				window.MousePosition(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
-				
+
 			case C.EnterNotify:
 				evt := (*C.XCrossingEvent)(unsafe.Pointer(&ev[0]))
 				window.MouseEnter(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
-				
+
 			case C.LeaveNotify:
 				evt := (*C.XCrossingEvent)(unsafe.Pointer(&ev[0]))
 				window.MouseExit(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
-				
+
 			case C.ButtonPress:
 				evt := (*C.XButtonEvent)(unsafe.Pointer(&ev[0]))
 				switch evt.button {
-					case 1:
-						window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
-					case 2:
-						window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
-					case 3:
-						window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
-					case 4:
-						window.MouseWheelUp(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
-					case 5:
-						window.MouseWheelDown(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				case 1:
+					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
+				case 2:
+					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
+				case 3:
+					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
+				case 4:
+					window.MouseWheelUp(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				case 5:
+					window.MouseWheelDown(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
 				}
-				
+
 			case C.ButtonRelease:
 				evt := (*C.XButtonEvent)(unsafe.Pointer(&ev[0]))
 				switch evt.button {
-					case 1:
-						window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
-					case 2:
-						window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
-					case 3:
-						window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
+				case 1:
+					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
+				case 2:
+					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
+				case 3:
+					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
 				}
 			case C.KeyPress:
 				evt := (*C.XKeyEvent)(unsafe.Pointer(&ev[0]))
 				var keysyms_per_keycode_return C.int
-				keysym := C.XGetKeyboardMapping(dpy, (C.KeyCode)(evt.keycode), 1, &keysyms_per_keycode_return);
+				keysym := C.XGetKeyboardMapping(dpy, (C.KeyCode)(evt.keycode), 1, &keysyms_per_keycode_return)
 				defer C.XFree(unsafe.Pointer(&keysym))
-			    symbol := uint(*keysym)
-				event.DispatchKeyPress(keymap[symbol])				
-			    fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
-			
+				symbol := uint(*keysym)
+				event.DispatchKeyPress(keymap[symbol])
+				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
+
 			default:
 				C.XFlush(dpy)
 			}

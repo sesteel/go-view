@@ -5,18 +5,22 @@ import (
 )
 
 type OverflowXStrategy int
+
 const (
 	STYLE_OVERFLOW_X_NONE OverflowXStrategy = iota
 	STYLE_OVERFLOW_X_SCROLL
 	STYLE_OVERFLOW_X_WRAP
+
 //	STYLE_OVERFLOW_X_SHADE
 //	STYLE_OVERFLOW_X_FADE
 )
 
 type OverflowYStrategy int
+
 const (
 	STYLE_OVERFLOW_Y_NONE OverflowYStrategy = iota
-	STYLE_OVERFLOW_Y_SCROLL	
+	STYLE_OVERFLOW_Y_SCROLL
+
 //	STYLE_OVERFLOW_Y_SHADE
 //	STYLE_OVERFLOW_Y_FADE
 )

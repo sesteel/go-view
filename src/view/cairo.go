@@ -115,8 +115,8 @@ const (
 	ANTIALIAS_GRAY
 	ANTIALIAS_SUBPIXEL
 	ANTIALIAS_FAST
-    ANTIALIAS_GOOD
-    ANTIALIAS_BEST
+	ANTIALIAS_GOOD
+	ANTIALIAS_BEST
 )
 
 // cairo_fill_rule_t
@@ -176,6 +176,7 @@ const (
 
 // cairo_hint_style_t values
 type HintStyle int
+
 const (
 	HINT_STYLE_DEFAULT HintStyle = iota
 	HINT_STYLE_NONE
@@ -186,6 +187,7 @@ const (
 
 // cairo_hint_metrics_t values
 type HintMetric int
+
 const (
 	HINT_METRICS_DEFAULT HintMetric = iota
 	HINT_METRICS_OFF
@@ -358,17 +360,17 @@ type Pattern struct {
 func NewRGBPattern(c theme.RGBA) *Pattern {
 	p := &Pattern{C.cairo_pattern_create_rgb(C.double(c.R), C.double(c.G), C.double(c.B))}
 	return p
-} 
+}
 
 func NewRGBAPattern(c theme.RGBA) *Pattern {
 	p := &Pattern{C.cairo_pattern_create_rgba(C.double(c.R), C.double(c.G), C.double(c.B), C.double(c.A))}
 	return p
-} 
+}
 
 func NewLinearPattern(x1, y1, x2, y2 float64) *Pattern {
 	p := &Pattern{C.cairo_pattern_create_linear(C.double(x1), C.double(y1), C.double(x2), C.double(y2))}
-	return p 
-} 
+	return p
+}
 
 func NewRadialPattern(x1, y1, r1, x2, y2, r2 float64) *Pattern {
 	p := &Pattern{C.cairo_pattern_create_radial(C.double(x1), C.double(y1), C.double(r1), C.double(x2), C.double(y2), C.double(r2))}
@@ -382,7 +384,6 @@ func (self *Pattern) AddColorStop(offset float64, c theme.RGBA) {
 func (self *Pattern) Destroy() {
 	C.cairo_pattern_destroy(self.pattern)
 }
-
 
 type Rectangle struct {
 	X, Y          float64
@@ -411,7 +412,7 @@ type FontFace struct {
 }
 
 type FontOptions struct {
-	 options *C.cairo_font_options_t
+	options *C.cairo_font_options_t
 }
 
 func NewFontOptions() *FontOptions {
@@ -419,14 +420,14 @@ func NewFontOptions() *FontOptions {
 	return &FontOptions{f}
 }
 
-// Destroys a cairo_font_options_t object created with 
-// cairo_font_options_create() or cairo_font_options_copy(). 
+// Destroys a cairo_font_options_t object created with
+// cairo_font_options_create() or cairo_font_options_copy().
 func (self *FontOptions) Destroy() {
 	C.cairo_font_options_destroy(self.options)
-} 
+}
 
-// Sets the antialiasing mode for the font options object. 
-// This specifies the type of antialiasing to do when rendering text. 
+// Sets the antialiasing mode for the font options object.
+// This specifies the type of antialiasing to do when rendering text.
 func (self *FontOptions) SetAntialias(antialias Antialias) {
 	C.cairo_font_options_set_antialias(self.options, C.cairo_antialias_t(antialias))
 }

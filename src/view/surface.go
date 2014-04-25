@@ -9,9 +9,9 @@ package view
 import "C"
 
 import (
-	"math"
 	"image"
 	"image/draw"
+	"math"
 	"unsafe"
 	"view/extimage"
 	"view/theme"
@@ -43,8 +43,8 @@ func NewSurface(format Format, width, height int) *Surface {
 // NewSurfaceFromC creates a new surface from C data types.
 // This is useful, if you already obtained a surface by
 // using a C library, for example an XCB surface.
-// 
-// The returned surface will not be collected by the 
+//
+// The returned surface will not be collected by the
 // garbage collector.
 func NewSurfaceFromC(s *C.cairo_surface_t, c *C.cairo_t) *Surface {
 	return &Surface{surface: s, context: c}
@@ -272,12 +272,12 @@ func (self *Surface) Rectangle(x, y, width, height float64) {
 }
 
 func (self *Surface) RoundedRectangle(x, y, width, height, radiusUL, radiusUR, radiusLR, radiusLL float64) {
-	degrees := math.Pi / 180.0;
-	self.NewSubPath();
-	self.Arc(x + radiusUL, y + radiusUL, radiusUL, 180 * degrees, 270 * degrees)
-	self.Arc(x + width - radiusUR, y + radiusUR, radiusUR, -90 * degrees, 0 * degrees)
-	self.Arc(x + width - radiusLR, y + height - radiusLR, radiusLR, 0 * degrees, 90 * degrees)
-	self.Arc(x + radiusLL, y + height - radiusLL, radiusLL, 90 * degrees, 180 * degrees)
+	degrees := math.Pi / 180.0
+	self.NewSubPath()
+	self.Arc(x+radiusUL, y+radiusUL, radiusUL, 180*degrees, 270*degrees)
+	self.Arc(x+width-radiusUR, y+radiusUR, radiusUR, -90*degrees, 0*degrees)
+	self.Arc(x+width-radiusLR, y+height-radiusLR, radiusLR, 0*degrees, 90*degrees)
+	self.Arc(x+radiusLL, y+height-radiusLL, radiusLL, 90*degrees, 180*degrees)
 	self.ClosePath()
 }
 
@@ -444,7 +444,6 @@ func (self *Surface) ShowText(text string) {
 	C.free(unsafe.Pointer(cs))
 }
 
-
 //func (self *Surface) ShowGlyphs(glyphs []Glyph) {
 //	panic("not implemented") // todo
 //}
@@ -511,20 +510,20 @@ func (self *Surface) CreateForRectangle(x, y, width, height float64) *Surface {
 	}
 }
 
-// This function finishes the surface and drops all references 
-// to external resources. For example, for the Xlib backend it 
-// means that cairo will no longer access the drawable, which 
-// can be freed. After calling cairo_surface_finish() the only 
-// valid operations on a surface are getting and setting user,  
-// referencing and destroying, and flushing and finishing it. 
-// Further drawing to the surface will not affect the surface 
-// but will instead trigger a CAIRO_STATUS_SURFACE_FINISHED 
+// This function finishes the surface and drops all references
+// to external resources. For example, for the Xlib backend it
+// means that cairo will no longer access the drawable, which
+// can be freed. After calling cairo_surface_finish() the only
+// valid operations on a surface are getting and setting user,
+// referencing and destroying, and flushing and finishing it.
+// Further drawing to the surface will not affect the surface
+// but will instead trigger a CAIRO_STATUS_SURFACE_FINISHED
 // error.
 //
-// When the last call to cairo_surface_destroy() decreases the 
-// reference count to zero, cairo will call 
-// cairo_surface_finish() if it hasn't been called already, 
-// before freeing the resources associated with the surface. 
+// When the last call to cairo_surface_destroy() decreases the
+// reference count to zero, cairo will call
+// cairo_surface_finish() if it hasn't been called already,
+// before freeing the resources associated with the surface.
 func (self *Surface) Finish() {
 	C.cairo_surface_finish(self.surface)
 }
@@ -562,9 +561,9 @@ func (self *Surface) Flush() {
 	C.cairo_surface_flush(self.surface)
 }
 
-// Tells cairo that drawing has been done to Surface 
-// using means other than cairo, and that cairo should 
-// reread any cached areas. Note that you must call 
+// Tells cairo that drawing has been done to Surface
+// using means other than cairo, and that cairo should
+// reread any cached areas. Note that you must call
 // flush() before doing such drawing.
 func (self *Surface) MarkDirty() {
 	C.cairo_surface_mark_dirty(self.surface)
@@ -575,37 +574,37 @@ func (self *Surface) MarkDirty() {
 //  width (int) – width of dirty rectangle
 //  height (int) – height of dirty rectangle
 //
-// Like mark_dirty(), but drawing has been done only 
-// to the specified rectangle, so that cairo can 
-// retain cached contents for other parts of the 
+// Like mark_dirty(), but drawing has been done only
+// to the specified rectangle, so that cairo can
+// retain cached contents for other parts of the
 // surface.
-// 
-// Any cached clip set on the Surface will be reset 
-// by this function, to make sure that future cairo 
+//
+// Any cached clip set on the Surface will be reset
+// by this function, to make sure that future cairo
 // calls have the clip set that they expect.
 func (self *Surface) MarkDirtyRectangle(x, y, width, height int) {
 	C.cairo_surface_mark_dirty_rectangle(self.surface,
 		C.int(x), C.int(y), C.int(width), C.int(height))
 }
 
-// x_offset (float) – the offset in the X direction, 
+// x_offset (float) – the offset in the X direction,
 //                    in device units
-// y_offset (float) – the offset in the Y direction, 
+// y_offset (float) – the offset in the Y direction,
 //                    in device units
 //
-// Sets an offset that is added to the device 
-// coordinates determined by the CTM when drawing 
-// to Surface. One use case for this function is 
-// when we want to create a Surface that redirects 
-// drawing for a portion of an onscreen surface to 
-// an offscreen surface in a way that is completely 
+// Sets an offset that is added to the device
+// coordinates determined by the CTM when drawing
+// to Surface. One use case for this function is
+// when we want to create a Surface that redirects
+// drawing for a portion of an onscreen surface to
+// an offscreen surface in a way that is completely
 // invisible to the user of the cairo API. Setting a
-// transformation via Context.translate() isn’t 
-// sufficient to do this, since functions like 
-// Context.device_to_user() will expose the hidden 
+// transformation via Context.translate() isn’t
+// sufficient to do this, since functions like
+// Context.device_to_user() will expose the hidden
 // offset.
 //
-// Note that the offset affects drawing to the surface 
+// Note that the offset affects drawing to the surface
 // as well as using the surface in a source pattern.
 func (self *Surface) SetDeviceOffset(x, y float64) {
 	C.cairo_surface_set_device_offset(self.surface, C.double(x), C.double(y))
@@ -786,5 +785,3 @@ func (self *Surface) SetImage(img image.Image) {
 	}
 	panic("Unknown surface format")
 }
-
-

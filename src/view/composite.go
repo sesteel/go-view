@@ -12,7 +12,7 @@ type Composite interface {
 
 type CompositeView struct {
 	DefaultView
-	layout  Layout
+	layout Layout
 	event.EventDispatcher
 }
 
@@ -53,15 +53,15 @@ func (self *CompositeView) Draw(surface *Surface) {
 	// 5. apply
 	// 6. translate back
 	// 7. pop
-//	x, y := self.Position()
-//	w, h := self.Size()
-//	p := NewLinearPattern(x, y, x, h)
-//	p.AddColorStop(0, color.Gray3)
-//	p.AddColorStop(1, color.Gray3)
-//	surface.Rectangle(x, y, w, h)
-//	surface.SetSource(p)
-//	surface.Fill()
-//	p.Destroy()
+	//	x, y := self.Position()
+	//	w, h := self.Size()
+	//	p := NewLinearPattern(x, y, x, h)
+	//	p.AddColorStop(0, color.Gray3)
+	//	p.AddColorStop(1, color.Gray3)
+	//	surface.Rectangle(x, y, w, h)
+	//	surface.SetSource(p)
+	//	surface.Fill()
+	//	p.Destroy()
 	self.layout.Draw(surface)
 }
 
