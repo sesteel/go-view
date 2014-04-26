@@ -1,3 +1,5 @@
+// Extended from https://github.com/ungerik/go-cairo
+// 
 // Copyright © 2002 University of Southern California
 // Copyright © 2005 Red Hat, Inc.
 // 

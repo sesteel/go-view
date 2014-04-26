@@ -1,3 +1,5 @@
+// Extended from https://github.com/ungerik/go-cairo
+// 
 // cairo - a vector graphics library with display and print output
 // 
 // Copyright © 2002 University of Southern California

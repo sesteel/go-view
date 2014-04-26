@@ -72,6 +72,6 @@ func (self *TextBox) Draw(s *view.Surface) {
 	}
 
 	//	if width > float64(s.GetWidth()) {
-	s.DrawHorizontalOverflow(height, self.Style())
+//	s.DrawHorizontalOverflow(height, self.Style())
 	//	}
 }

@@ -1,3 +1,5 @@
+// Extended from https://github.com/ungerik/go-cairo
+// 
 // MIT License
 // Copyright (c) 2012 Erik Unger
 //

@@ -78,7 +78,7 @@ func main() {
 	tb.AddKeyPressHandler(func(kb event.Keyboard){
 //		fmt.Println("<-->", kb.Char)
 	})
-	l.Add(tb, view.Bounds{0,0,view.Size{300,400}}) 
+	l.Add(tb, view.Bounds{0,0,view.Size{600,400}}) 
 	win.SetLayout(l)
 	win.Start()
 	<-waitOnExit
