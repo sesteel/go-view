@@ -14,21 +14,17 @@ type Drawer interface {
 }
 
 type View interface {
-	SetParent(View)
-	Parent() View
-	Surface() *Surface
-	SetName(string)
-	Name() string
-	Position() (float64, float64)
-	SetSize(float64, float64)
-	Size() (float64, float64)
-	SetStyle(Style)
-	Style() Style
 	Drawer
 	event.FocusNotifier
 	event.FocusHandler
 	event.MouseNotifier
 	event.MouseHandler
+	SetParent(View)
+	Parent() View
+	Surface() *Surface
+	Name() string
+	SetStyle(Style)
+	Style() Style
 }
 
 type Composite interface {
