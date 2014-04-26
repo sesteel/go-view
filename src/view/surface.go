@@ -53,11 +53,12 @@ import (
 	"view/theme"
 )
 
-// Golang struct to hold both a cairo surface and a cairo context
+// Surface holds the cairo surface and a cairo context
 type Surface struct {
 	surface *C.cairo_surface_t
 	context *C.cairo_t
 }
+
 
 func (self *Surface) Destroy() {
 	C.cairo_surface_destroy(self.surface)
@@ -76,7 +77,7 @@ func NewSurface(format Format, width, height int) *Surface {
 	return surface
 }
 
-// NewSurfaceFromC creates a new surface from C data types.
+// NewSurfaceFromC creates a new Surface from C data types.
 // This is useful, if you already obtained a surface by
 // using a C library, for example an XCB surface.
 //
@@ -86,6 +87,7 @@ func NewSurfaceFromC(s *C.cairo_surface_t, c *C.cairo_t) *Surface {
 	return &Surface{surface: s, context: c}
 }
 
+// NewSurfaceFromPNG builds a Surface from a png file.
 func NewSurfaceFromPNG(filename string) *Surface {
 	cs := C.CString(filename)
 	defer C.free(unsafe.Pointer(cs))
@@ -94,6 +96,7 @@ func NewSurfaceFromPNG(filename string) *Surface {
 	return surface
 }
 
+// NewSurfaceFromImage builds a Surface from the given Image.
 func NewSurfaceFromImage(img image.Image) *Surface {
 	var format Format
 	switch img.(type) {
@@ -109,6 +112,7 @@ func NewSurfaceFromImage(img image.Image) *Surface {
 	return surface
 }
 
+// NewPDFSurface builds a Surface which can be written as a PDF file to disk.
 func NewPDFSurface(filename string, widthInPoints, heightInPoints float64, version PDFVersion) *Surface {
 	cs := C.CString(filename)
 	defer C.free(unsafe.Pointer(cs))
@@ -118,6 +122,7 @@ func NewPDFSurface(filename string, widthInPoints, heightInPoints float64, versi
 	return surface
 }
 
+// NewPSSurface builds a Surface which can be written as a PS file to disk.
 func NewPSSurface(filename string, widthInPoints, heightInPoints float64, level PSLevel) *Surface {
 	cs := C.CString(filename)
 	defer C.free(unsafe.Pointer(cs))
@@ -127,6 +132,7 @@ func NewPSSurface(filename string, widthInPoints, heightInPoints float64, level 
 	return surface
 }
 
+// NewSVGSurface builds a Surface which can be written as a SVG file to disk.
 func NewSVGSurface(filename string, widthInPoints, heightInPoints float64, version SVGVersion) *Surface {
 	cs := C.CString(filename)
 	defer C.free(unsafe.Pointer(cs))

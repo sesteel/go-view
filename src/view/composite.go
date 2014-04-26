@@ -13,7 +13,7 @@ import (
 type Composite interface {
 	View
 	SetLayout(Layout)
-	GetLayout() Layout
+	Layout() Layout
 }
 
 type CompositeView struct {
@@ -38,7 +38,7 @@ func (self *CompositeView) SetLayout(layout Layout) {
 	self.layout = layout
 }
 
-func (self *CompositeView) GetLayout() Layout {
+func (self *CompositeView) Layout() Layout {
 	return self.layout
 }
 
