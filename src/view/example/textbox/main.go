@@ -18,8 +18,7 @@ import (
 func main() {
 	var waitOnExit chan bool
 	fmt.Println(color.HexRGBA(0xff77ff00))
-	win := view.NewWindow("Mouse Integration Test", 0, 0, 800, 600)
-	win.SetSize(600, 400)
+	win := view.NewWindow("Text Box Example", 0, 0, 600, 300)
 	l := layout.NewAbsolute(win)
 	tb := widget.NewTextBox(win, msg)
 	style := tb.Style()
@@ -78,7 +77,7 @@ func main() {
 	tb.AddKeyPressHandler(func(kb event.Keyboard){
 //		fmt.Println("<-->", kb.Char)
 	})
-	l.Add(tb, view.Bounds{0,0,view.Size{600,400}}) 
+	l.Add(tb, view.Bounds{0,0,view.Size{600,300}}) 
 	win.SetLayout(l)
 	win.Start()
 	<-waitOnExit
