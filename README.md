@@ -44,6 +44,8 @@ type Layout interface {
 	event.MouseHandler
 }
 ```
+Screenshot from the Button Example:<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/button_example.png>
 
-The following screenshot is from running the textbox application in the examples subdirectory.  
-<img src=http://i.imgur.com/bLXLbXj.png>
+Screenshot from the Text Box Example:
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/text_box.png>
