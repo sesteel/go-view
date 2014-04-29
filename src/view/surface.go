@@ -50,7 +50,7 @@ import (
 	"math"
 	"unsafe"
 	"view/extimage"
-	"view/theme"
+	"view/color"
 )
 
 // Surface holds the cairo surface and a cairo context
@@ -65,7 +65,7 @@ func (self *Surface) Destroy() {
 	C.cairo_destroy(self.context)
 }
 
-func (self *Surface) GetDevice() *Device {
+func (self *Surface) Device() *Device {
 	//C.cairo_surface_get_device
 	panic("not implemented") // todo
 	return nil
@@ -178,7 +178,7 @@ func (self *Surface) SetSourceRGB(red, green, blue float64) {
 	C.cairo_set_source_rgb(self.context, C.double(red), C.double(green), C.double(blue))
 }
 
-func (self *Surface) SetSourceRGBA(c theme.RGBA) {
+func (self *Surface) SetSourceRGBA(c color.RGBA) {
 	C.cairo_set_source_rgba(self.context, C.double(c.R), C.double(c.G), C.double(c.B), C.double(c.A))
 }
 
@@ -456,7 +456,7 @@ func (self *Surface) SetFontOptions(fontOptions *FontOptions) {
 	C.cairo_set_font_options(self.context, fontOptions.options)
 }
 
-func (self *Surface) GetFontOptions() *FontOptions {
+func (self *Surface) FontOptions() *FontOptions {
 	panic("not implemented") // todo
 	return nil
 }
@@ -466,7 +466,7 @@ func (self *Surface) GetFontOptions() *FontOptions {
 //	panic("not implemented") // todo
 //}
 //
-//func (self *Surface) GetFontFace() *FontFace {
+//func (self *Surface) FontFace() *FontFace {
 //	panic("not implemented") // todo
 //	return nil
 //}
@@ -475,7 +475,7 @@ func (self *Surface) GetFontOptions() *FontOptions {
 //	panic("not implemented") // todo
 //}
 //
-//func (self *Surface) GetScaledFont() *ScaledFont {
+//func (self *Surface) ScaledFont() *ScaledFont {
 //	panic("not implemented") // todo
 //	return nil
 //}
@@ -534,7 +534,7 @@ func (self *Surface) TextExtents(text string) *TextExtents {
 ///////////////////////////////////////////////////////////////////////////////
 // Error status queries
 
-func (self *Surface) Status() Status {
+func (self *Surface) ContextStatus() Status {
 	return Status(C.cairo_status(self.context))
 }
 
@@ -570,19 +570,19 @@ func (self *Surface) Finish() {
 	C.cairo_surface_finish(self.surface)
 }
 
-func (self *Surface) GetReferenceCount() int {
+func (self *Surface) ReferenceCount() int {
 	return int(C.cairo_surface_get_reference_count(self.surface))
 }
 
-func (self *Surface) GetStatus() Status {
+func (self *Surface) SurfaceStatus() Status {
 	return Status(C.cairo_surface_status(self.surface))
 }
 
-func (self *Surface) GetType() SurfaceType {
+func (self *Surface) Type() SurfaceType {
 	return SurfaceType(C.cairo_surface_get_type(self.surface))
 }
 
-func (self *Surface) GetContent() Content {
+func (self *Surface) Content() Content {
 	return Content(C.cairo_surface_get_content(self.surface))
 }
 
@@ -593,7 +593,7 @@ func (self *Surface) WriteToPNG(filename string) {
 }
 
 // Already implemented via context split context/surface?
-// func (self *Surface) GetFontOptions() *FontOptions {
+// func (self *Surface) FontOptions() *FontOptions {
 // 	// todo
 // 	// C.cairo_surface_get_font_options (cairo_surface_t      *surface,				cairo_font_options_t *options);
 // 	return nil
@@ -652,7 +652,7 @@ func (self *Surface) SetDeviceOffset(x, y float64) {
 	C.cairo_surface_set_device_offset(self.surface, C.double(x), C.double(y))
 }
 
-func (self *Surface) GetDeviceOffset() (x, y float64) {
+func (self *Surface) DeviceOffset() (x, y float64) {
 	C.cairo_surface_get_device_offset(self.surface, (*C.double)(&x), (*C.double)(&y))
 	return x, y
 }
@@ -662,7 +662,7 @@ func (self *Surface) SetFallbackResolution(xPixelPerInch, yPixelPerInch float64)
 		C.double(xPixelPerInch), C.double(yPixelPerInch))
 }
 
-func (self *Surface) GetFallbackResolution() (xPixelPerInch, yPixelPerInch float64) {
+func (self *Surface) FallbackResolution() (xPixelPerInch, yPixelPerInch float64) {
 	C.cairo_surface_get_fallback_resolution(self.surface,
 		(*C.double)(&xPixelPerInch), (*C.double)(&yPixelPerInch))
 	return xPixelPerInch, yPixelPerInch
@@ -681,13 +681,13 @@ func (self *Surface) HasShowTextGlyphs() bool {
 	return C.cairo_surface_has_show_text_glyphs(self.surface) != 0
 }
 
-// GetData returns a copy of the surfaces raw pixel data.
+// Data returns a copy of the surfaces raw pixel data.
 // This method also calls Flush.
-func (self *Surface) GetData() []byte {
+func (self *Surface) Data() []byte {
 	self.Flush()
 	dataPtr := C.cairo_image_surface_get_data(self.surface)
 	if dataPtr == nil {
-		panic("cairo.Surface.GetData(): can't access surface pixel data")
+		panic("cairo.Surface.Data(): can't access surface pixel data")
 	}
 	stride := C.cairo_image_surface_get_stride(self.surface)
 	height := C.cairo_image_surface_get_height(self.surface)
@@ -711,32 +711,32 @@ func (self *Surface) SetData(data []byte) {
 	self.MarkDirty()
 }
 
-func (self *Surface) GetFormat() Format {
+func (self *Surface) Format() Format {
 	return Format(C.cairo_image_surface_get_format(self.surface))
 }
 
-func (self *Surface) GetWidth() int {
+func (self *Surface) Width() int {
 	return int(C.cairo_image_surface_get_width(self.surface))
 }
 
-func (self *Surface) GetHeight() int {
+func (self *Surface) Height() int {
 	return int(C.cairo_image_surface_get_height(self.surface))
 }
 
-func (self *Surface) GetStride() int {
+func (self *Surface) Stride() int {
 	return int(C.cairo_image_surface_get_stride(self.surface))
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // image.Image methods
 
-func (self *Surface) GetImage() image.Image {
-	width := self.GetWidth()
-	height := self.GetHeight()
-	stride := self.GetStride()
-	data := self.GetData()
+func (self *Surface) Image() image.Image {
+	width := self.Width()
+	height := self.Height()
+	stride := self.Stride()
+	data := self.Data()
 
-	switch self.GetFormat() {
+	switch self.Format() {
 	case FORMAT_ARGB32:
 		return &extimage.BGRA{
 			Pix:    data,
@@ -775,11 +775,11 @@ func (self *Surface) GetImage() image.Image {
 
 // SetImage set the data from an image.Image with identical size.
 func (self *Surface) SetImage(img image.Image) {
-	width := self.GetWidth()
-	height := self.GetHeight()
-	stride := self.GetStride()
+	width := self.Width()
+	height := self.Height()
+	stride := self.Stride()
 
-	switch self.GetFormat() {
+	switch self.Format() {
 	case FORMAT_ARGB32:
 		if i, ok := img.(*extimage.BGRA); ok {
 			if i.Rect.Dx() == width && i.Rect.Dy() == height && i.Stride == stride {
@@ -787,7 +787,7 @@ func (self *Surface) SetImage(img image.Image) {
 				return
 			}
 		}
-		surfImg := self.GetImage().(*extimage.BGRA)
+		surfImg := self.Image().(*extimage.BGRA)
 		draw.Draw(surfImg, surfImg.Bounds(), img, img.Bounds().Min, draw.Src)
 		self.SetData(surfImg.Pix)
 
@@ -798,7 +798,7 @@ func (self *Surface) SetImage(img image.Image) {
 				return
 			}
 		}
-		surfImg := self.GetImage().(*extimage.BGRN)
+		surfImg := self.Image().(*extimage.BGRN)
 		draw.Draw(surfImg, surfImg.Bounds(), img, img.Bounds().Min, draw.Src)
 		self.SetData(surfImg.Pix)
 
@@ -809,7 +809,7 @@ func (self *Surface) SetImage(img image.Image) {
 				return
 			}
 		}
-		surfImg := self.GetImage().(*image.Alpha)
+		surfImg := self.Image().(*image.Alpha)
 		draw.Draw(surfImg, surfImg.Bounds(), img, img.Bounds().Min, draw.Src)
 		self.SetData(surfImg.Pix)
 

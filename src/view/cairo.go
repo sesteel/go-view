@@ -48,7 +48,7 @@ package view
 import "C"
 
 import (
-	"view/theme"
+	"view/color"
 )
 
 // cairo_status_t
@@ -396,12 +396,12 @@ type Pattern struct {
 	pattern *C.cairo_pattern_t
 }
 
-func NewRGBPattern(c theme.RGBA) *Pattern {
+func NewRGBPattern(c color.RGBA) *Pattern {
 	p := &Pattern{C.cairo_pattern_create_rgb(C.double(c.R), C.double(c.G), C.double(c.B))}
 	return p
 }
 
-func NewRGBAPattern(c theme.RGBA) *Pattern {
+func NewRGBAPattern(c color.RGBA) *Pattern {
 	p := &Pattern{C.cairo_pattern_create_rgba(C.double(c.R), C.double(c.G), C.double(c.B), C.double(c.A))}
 	return p
 }
@@ -416,7 +416,7 @@ func NewRadialPattern(x1, y1, r1, x2, y2, r2 float64) *Pattern {
 	return p
 }
 
-func (self *Pattern) AddColorStop(offset float64, c theme.RGBA) {
+func (self *Pattern) AddColorStop(offset float64, c color.RGBA) {
 	C.cairo_pattern_add_color_stop_rgb(self.pattern, C.double(offset), C.double(c.R), C.double(c.G), C.double(c.B))
 }
 

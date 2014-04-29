@@ -10,12 +10,6 @@ import (
 	"view/event"
 )
 
-type Composite interface {
-	View
-	SetLayout(Layout)
-	Layout() Layout
-}
-
 type CompositeView struct {
 	DefaultView
 	layout Layout

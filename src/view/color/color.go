@@ -3,23 +3,28 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // Copyright (c) 2014 Stanley Steel
-package theme
+package color
 
 import ()
 
 var (
-	Selection RGBA
+	Selection RGBA 
 
-	White RGBA
-	Gray1 RGBA
-	Gray2 RGBA
-	Gray3 RGBA
-	Gray4 RGBA
-	Gray5 RGBA
-	Gray6 RGBA
-	Gray7 RGBA
-	Black RGBA
-
+	White   RGBA
+	Gray1   RGBA
+	Gray2   RGBA
+	Gray3   RGBA
+	Gray4   RGBA
+	Gray5   RGBA
+	Gray6   RGBA
+	Gray7   RGBA
+	Gray8   RGBA
+	Gray9   RGBA
+	Gray10  RGBA
+	Gray11  RGBA
+	Gray12  RGBA
+	Gray13  RGBA
+	Black   RGBA
 	Blue1   RGBA
 	Blue2   RGBA
 	Cyan1   RGBA
@@ -41,34 +46,40 @@ var (
 )
 
 func init() {
-	Selection = HexRGBA(0xFF0000FF) 
-	White   = HexRGBA(0xFFFFFFFF)
-	Gray1   = HexRGBA(0xF5F7FAFF)
-	Gray2   = HexRGBA(0xE6E9EDFF)
-	Gray3   = HexRGBA(0xCCD1D9FF)
-	Gray4   = HexRGBA(0xAAB2BDFF)
-	Gray5   = HexRGBA(0x656D78FF)
-	Gray6   = HexRGBA(0x434A54FF)
-	Gray7   = HexRGBA(0x232A34FF)
-	Black   = HexRGBA(0x050505FF)
-	Blue1   = HexRGBA(0x5D9CECFF)
-	Blue2   = HexRGBA(0x4A89DCFF)
-	Cyan1   = HexRGBA(0x4FC1E9FF)
-	Cyan2   = HexRGBA(0x3BAFDAFF)
-	Teal1   = HexRGBA(0x48CFADFF)
-	Teal2   = HexRGBA(0x37BC9BFF)
-	Green1  = HexRGBA(0xA0D468FF)
-	Green2  = HexRGBA(0x8CC152FF)
+	Selection = HexRGBA(0xFF0000FF)
+	White = HexRGBA(0xFFFFFFFF)
+	Gray1 = HexRGBA(0xF5F7FAFF)
+	Gray2 = HexRGBA(0xE4E6EAFF)
+	Gray3 = HexRGBA(0xD2D5D9FF)
+	Gray4 = HexRGBA(0xC1C4C8FF)
+	Gray5 = HexRGBA(0xAFB3B8FF)
+	Gray6 = HexRGBA(0x9EA2A7FF)
+	Gray7 = HexRGBA(0x8C9197FF)
+	Gray8 = HexRGBA(0x7B7F87FF)
+	Gray9 = HexRGBA(0x696E76FF)
+	Gray10 = HexRGBA(0x585D65FF)
+	Gray11 = HexRGBA(0x464C55FF)
+	Gray12 = HexRGBA(0x353B45FF)
+	Gray13 = HexRGBA(0x232A34FF)
+	Black = HexRGBA(0x050505FF)
+	Blue1 = HexRGBA(0x5D9CECFF)
+	Blue2 = HexRGBA(0x4A89DCFF)
+	Cyan1 = HexRGBA(0x4FC1E9FF)
+	Cyan2 = HexRGBA(0x3BAFDAFF)
+	Teal1 = HexRGBA(0x48CFADFF)
+	Teal2 = HexRGBA(0x37BC9BFF)
+	Green1 = HexRGBA(0xA0D468FF)
+	Green2 = HexRGBA(0x8CC152FF)
 	Yellow1 = HexRGBA(0xFFCE54FF)
 	Yellow2 = HexRGBA(0xF6BB42FF)
 	Orange1 = HexRGBA(0xFC6E51FF)
 	Orange2 = HexRGBA(0xE9573FFF)
-	Red1    = HexRGBA(0xED5565FF)
-	Red2    = HexRGBA(0xDA4453FF)
+	Red1 = HexRGBA(0xED5565FF)
+	Red2 = HexRGBA(0xDA4453FF)
 	Purple1 = HexRGBA(0xAC92ECFF)
 	Purple2 = HexRGBA(0x967ADCFF)
-	Pink1   = HexRGBA(0xEC87C0FF)
-	Pink2   = HexRGBA(0xD770ADFF)
+	Pink1 = HexRGBA(0xEC87C0FF)
+	Pink2 = HexRGBA(0xD770ADFF)
 }
 
 type RGBA struct {

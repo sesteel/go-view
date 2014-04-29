@@ -8,7 +8,7 @@ package view
 
 import (
 	"view/event"
-	"view/theme"
+	"view/color"
 )
 
 type Component interface {
@@ -70,7 +70,7 @@ func (self *DefaultComponent) Draw(surface *Surface) {
 
 		surface.SelectFontFace("Sans", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
 		surface.SetFontSize(16)
-		surface.SetSourceRGBA(theme.Cyan2)
+		surface.SetSourceRGBA(color.Cyan2)
 		surface.MoveTo(float64(self.x), float64(self.y)+te.Height)
 		surface.ShowText(msg)
 

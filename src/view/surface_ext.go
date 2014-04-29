@@ -2,13 +2,13 @@ package view
 
 import (
 	"fmt"
-	"view/theme"
+	"view/color"
 	"view/tokenizer"
 )
 
 func (self *Surface) drawTextToken(tkn *tokenizer.Token, bounds Bounds, style Style) {
 	if tkn.Selected {
-		self.SetSourceRGBA(theme.Selection)
+		self.SetSourceRGBA(color.Selection)
 		self.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height)
 		self.Fill()
 	}
@@ -22,7 +22,7 @@ func (self *Surface) drawTextToken(tkn *tokenizer.Token, bounds Bounds, style St
 
 var EXTENTS map[string]*TextExtents = make(map[string]*TextExtents)
 
-// DrawWrappedPlainText uses the Style's foreground theme.to draw plain
+// DrawWrappedPlainText uses the Style's foreground color.to draw plain
 // ascii formatted text within the bounds.  It stops rendering at last visible
 // line, but continues to calculate total height.
 // returns height
@@ -111,17 +111,17 @@ func (self *Surface) DrawVerticalOverflow2(rows, shown, percent float64, s Style
 
 	switch s.OverflowY() {
 	case STYLE_OVERFLOW_Y_SCROLL:
-		self.SetSourceRGBA(theme.HexRGBA(0x00000007))
-		self.Rectangle(float64(self.GetWidth())-10, 0, float64(self.GetWidth()), float64(self.GetHeight()))
+		self.SetSourceRGBA(color.HexRGBA(0x00000007))
+		self.Rectangle(float64(self.Width())-10, 0, float64(self.Width()), float64(self.Height()))
 		self.Fill()
 		ratio := float64(shown) / float64(rows)
-		height := ratio * float64(self.GetHeight())
+		height := ratio * float64(self.Height())
 		if height < 5 {
 			height = 15
 		}
-		fmt.Println("::: ", self.GetWidth(), height, percent)
-		self.SetSourceRGBA(theme.HexRGBA(0x00000011))
-		self.RoundedRectangle(float64(self.GetWidth())-10, percent*(float64(self.GetHeight())-height), 10, height, 2, 2, 2, 2)
+		fmt.Println("::: ", self.Width(), height, percent)
+		self.SetSourceRGBA(color.HexRGBA(0x00000011))
+		self.RoundedRectangle(float64(self.Width())-10, percent*(float64(self.Height())-height), 10, height, 2, 2, 2, 2)
 		self.Fill()
 	}
 }
@@ -132,15 +132,17 @@ func (self *Surface) DrawVerticalOverflow(boundsHeight, height, percent float64,
 	}
 	switch s.OverflowY() {
 	case STYLE_OVERFLOW_Y_SCROLL:
-		self.SetSourceRGBA(theme.HexRGBA(0x00000025))
-		self.RoundedRectangle(float64(self.GetWidth())-11, percent, 10, height, 2, 2, 2, 2)
+		self.SetSourceRGBA(color.HexRGBA(0x00000025))
+		self.RoundedRectangle(float64(self.Width())-11, percent, 10, height, 2, 2, 2, 2)
 		self.Fill()
 	}
 }
 
 func (self *Surface) DrawHorizontalOverflow(boundsWidth float64, s Style) {
-	ratio := float64(self.GetWidth()) / boundsWidth
-	self.SetSourceRGBA(theme.HexRGBA(0x00000025))
-	self.RoundedRectangle(float64(self.GetHeight())-10, 50, 10, float64(self.GetWidth())*ratio, 2, 2, 2, 2)
+	ratio := float64(self.Width()) / boundsWidth
+	self.SetSourceRGBA(color.HexRGBA(0x00000025))
+	self.RoundedRectangle(float64(self.Height())-10, 50, 10, float64(self.Width())*ratio, 2, 2, 2, 2)
 	self.Fill()
 }
+
+

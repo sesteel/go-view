@@ -28,7 +28,7 @@ import (
 	"time"
 	"unsafe"
 	"view/event"
-	"view/theme"
+	"view/color"
 )
 
 func init() {
@@ -85,8 +85,8 @@ func (self *Window) Draw(surface *Surface) {
 	_, h := self.Size()
 	p := NewLinearPattern(0, 0, 0, h)
 	defer p.Destroy()
-	p.AddColorStop(0, theme.Gray5)
-	p.AddColorStop(1, theme.Gray6)
+	p.AddColorStop(0, color.Gray6)
+	p.AddColorStop(1, color.Gray9)
 	surface.SetSource(p)
 	surface.Paint()
 	if self.layout != nil {

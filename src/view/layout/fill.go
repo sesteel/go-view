@@ -13,11 +13,11 @@ import (
 // child to the size allotted to the layout by 
 // the target.
 type Fill struct {
-	target view.Composite
+	target view.View
 	child  view.Drawer
 }
 
-func NewFill(target view.Composite) *Fill {
+func NewFill(target view.View) *Fill {
 	l := new(Fill)
 	l.target = target
 	return l

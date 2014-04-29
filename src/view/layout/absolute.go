@@ -11,12 +11,12 @@ import (
 )
 
 type Absolute struct {
-	target   view.Composite
+	target   view.View
 	children []*absGroup
 	current  bool
 }
 
-func NewAbsolute(target view.Composite) *Absolute {
+func NewAbsolute(target view.View) *Absolute {
 	l := new(Absolute)
 	l.target = target
 	return l

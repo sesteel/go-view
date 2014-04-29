@@ -13,12 +13,12 @@ import (
 // child to the size allotted to the layout by the
 // target.
 type VSplit struct {
-	target      view.Composite
+	target      view.View
 	left, right view.Drawer
 	division    float64
 }
 
-func NewVSplit(target view.Composite) *VSplit {
+func NewVSplit(target view.View) *VSplit {
 	l := new(VSplit)
 	l.target = target
 //	division

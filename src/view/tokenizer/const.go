@@ -82,6 +82,7 @@ var codes map[int]string = map[int]string {
   TAB            :"\t",
   SPACE          :" ",
   SQUOTE         :"'",
+  CURSOR         :"|",
 }
 
 var Names []string = []string {
@@ -156,7 +157,8 @@ var Names []string = []string {
   "\r",
   "\t",
   " ",
-  "'"}
+  "'",
+  "|"}
 
 const (
   PURE = iota
@@ -231,4 +233,5 @@ const (
   TAB
   SPACE
   SQUOTE
+  CURSOR
 )

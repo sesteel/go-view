@@ -8,7 +8,7 @@ package widget
 
 import (
 	"view"
-	"view/theme"
+	"view/color"
 )
 
 type TextField struct {
@@ -25,16 +25,16 @@ func (self *TextField) Draw(s *view.Surface) {
 	
 	s.SetAntialias(view.ANTIALIAS_SUBPIXEL)
 	s.SetLineWidth(2)
-	s.SetSourceRGBA(theme.Gray4)
+	s.SetSourceRGBA(color.Gray4)
 	s.RoundedRectangle(float64(x), float64(y), float64(w), float64(h), 2, 2, 2, 2)
 	s.StrokePreserve()
 	
 	s.SetAntialias(view.ANTIALIAS_SUBPIXEL)
 	p := view.NewLinearPattern(float64(x), float64(y), float64(x), float64(h))
-	p.AddColorStop(0, theme.Gray1)
-	p.AddColorStop(.35, theme.White)
-	p.AddColorStop(.65, theme.White)
-	p.AddColorStop(1, theme.Gray1)
+	p.AddColorStop(0, color.Gray1)
+	p.AddColorStop(.35, color.White)
+	p.AddColorStop(.65, color.White)
+	p.AddColorStop(1, color.Gray1)
 	s.RoundedRectangle(float64(x), float64(y), float64(w), float64(h), 2, 2, 2, 2)
 	s.SetSource(p)
 	s.Fill()

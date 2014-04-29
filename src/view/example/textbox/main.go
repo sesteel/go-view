@@ -7,7 +7,7 @@ package main
 
 import (
 	"view"
-	"view/theme"
+	"view/color"
 	"view/layout"
 	"view/widget"
 	"view/event"
@@ -17,7 +17,7 @@ import (
  
 func main() {
 	var waitOnExit chan bool
-	fmt.Println(theme.HexRGBA(0xff77ff00))
+	fmt.Println(color.HexRGBA(0xff77ff00))
 	win := view.NewWindow("Mouse Integration Test", 0, 0, 800, 600)
 	win.SetSize(600, 400)
 	l := layout.NewAbsolute(win)

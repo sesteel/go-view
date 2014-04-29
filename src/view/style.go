@@ -7,7 +7,7 @@
 package view
 
 import (
-	"view/theme"
+	"view/color"
 )
 
 type OverflowXStrategy int
@@ -47,13 +47,13 @@ type Style interface {
 	SetFontSlant(int)
 	SetFontSize(float64)
 	SetTabWidth(int)
-	SetBackground(theme.RGBA)
-	SetForeground(theme.RGBA)
-	SetBorderColor(theme.RGBA)
-	SetBorderColorTop(theme.RGBA)
-	SetBorderColorBottom(theme.RGBA)
-	SetBorderColorLeft(theme.RGBA)
-	SetBorderColorRight(theme.RGBA)
+	SetBackground(color.RGBA)
+	SetForeground(color.RGBA)
+	SetBorderColor(color.RGBA)
+	SetBorderColorTop(color.RGBA)
+	SetBorderColorBottom(color.RGBA)
+	SetBorderColorLeft(color.RGBA)
+	SetBorderColorRight(color.RGBA)
 	SetBorderWidth(float64)
 	SetBorderWidthTop(float64)
 	SetBorderWidthBottom(float64)
@@ -73,12 +73,12 @@ type Style interface {
 	FontSlant() int
 	FontSize() float64
 	TabWidth() int
-	Background() theme.RGBA
-	Foreground() theme.RGBA
-	BorderColorTop() theme.RGBA
-	BorderColorBottom() theme.RGBA
-	BorderColorLeft() theme.RGBA
-	BorderColorRight() theme.RGBA
+	Background() color.RGBA
+	Foreground() color.RGBA
+	BorderColorTop() color.RGBA
+	BorderColorBottom() color.RGBA
+	BorderColorLeft() color.RGBA
+	BorderColorRight() color.RGBA
 	BorderWidthTop() float64
 	BorderWidthBottom() float64
 	BorderWidthLeft() float64
@@ -98,12 +98,12 @@ type defaultStyle struct {
 	fontSlant         int
 	fontSize          float64
 	tabWidth          int
-	backgroundColor   theme.RGBA
-	foregroundColor   theme.RGBA
-	borderColorTop    theme.RGBA
-	borderColorBottom theme.RGBA
-	borderColorLeft   theme.RGBA
-	borderColorRight  theme.RGBA
+	backgroundColor   color.RGBA
+	foregroundColor   color.RGBA
+	borderColorTop    color.RGBA
+	borderColorBottom color.RGBA
+	borderColorLeft   color.RGBA
+	borderColorRight  color.RGBA
 	borderWidthTop    float64
 	borderWidthBottom float64
 	borderWidthLeft   float64
@@ -120,14 +120,17 @@ func NewStyle() Style {
 	s := new(defaultStyle)
 	s.SetBorderWidth(1)
 	s.SetAntialias(true)
-	s.SetFontName("Clear Sans")
-	s.SetFontSize(16)
+//	s.SetFontName("Clear Sans")
+	s.SetFontName("Liberation Sans")
+	s.SetFontSize(13)
 	s.SetTabWidth(4)
 	s.SetFontSlant(FONT_SLANT_NORMAL)
 	s.SetFontWeight(FONT_WEIGHT_NORMAL)
-	s.SetBackground(theme.Gray3)
-	s.SetForeground(theme.Gray7)
+	s.SetBackground(color.Gray5)
+	s.SetForeground(color.Gray11)
 	s.SetPadding(3)
+	s.SetBorderColor(color.Gray8)
+	s.SetBorderWidth(2)
 	return s
 }
 
@@ -137,12 +140,12 @@ func (self *defaultStyle) SetFontWeight(weight int)              { self.fontWeig
 func (self *defaultStyle) SetFontSlant(slant int)                { self.fontSlant = slant }
 func (self *defaultStyle) SetFontSize(size float64)              { self.fontSize = size }
 func (self *defaultStyle) SetTabWidth(width int)                 { self.tabWidth = width }
-func (self *defaultStyle) SetBackground(color theme.RGBA)        { self.backgroundColor = color }
-func (self *defaultStyle) SetForeground(color theme.RGBA)        { self.foregroundColor = color }
-func (self *defaultStyle) SetBorderColorTop(color theme.RGBA)    { self.borderColorTop = color }
-func (self *defaultStyle) SetBorderColorBottom(color theme.RGBA) { self.borderColorBottom = color }
-func (self *defaultStyle) SetBorderColorLeft(color theme.RGBA)   { self.borderColorLeft = color }
-func (self *defaultStyle) SetBorderColorRight(color theme.RGBA)  { self.borderColorRight = color }
+func (self *defaultStyle) SetBackground(color color.RGBA)        { self.backgroundColor = color }
+func (self *defaultStyle) SetForeground(color color.RGBA)        { self.foregroundColor = color }
+func (self *defaultStyle) SetBorderColorTop(color color.RGBA)    { self.borderColorTop = color }
+func (self *defaultStyle) SetBorderColorBottom(color color.RGBA) { self.borderColorBottom = color }
+func (self *defaultStyle) SetBorderColorLeft(color color.RGBA)   { self.borderColorLeft = color }
+func (self *defaultStyle) SetBorderColorRight(color color.RGBA)  { self.borderColorRight = color }
 func (self *defaultStyle) SetBorderWidthTop(width float64)       { self.borderWidthTop = width }
 func (self *defaultStyle) SetBorderWidthBottom(width float64)    { self.borderWidthBottom = width }
 func (self *defaultStyle) SetBorderWidthLeft(width float64)      { self.borderWidthLeft = width }
@@ -152,7 +155,7 @@ func (self *defaultStyle) SetPaddingBottom(padding float64)      { self.paddingB
 func (self *defaultStyle) SetPaddingLeft(padding float64)        { self.paddingLeft = padding }
 func (self *defaultStyle) SetPaddingRight(padding float64)       { self.paddingRight = padding }
 
-func (self *defaultStyle) SetBorderColor(color theme.RGBA) {
+func (self *defaultStyle) SetBorderColor(color color.RGBA) {
 	self.borderColorTop = color
 	self.borderColorBottom = color
 	self.borderColorLeft = color
@@ -187,12 +190,12 @@ func (self *defaultStyle) FontWeight() int               { return self.fontWeigh
 func (self *defaultStyle) FontSlant() int                { return self.fontSlant }
 func (self *defaultStyle) FontSize() float64             { return self.fontSize }
 func (self *defaultStyle) TabWidth() int                 { return self.tabWidth }
-func (self *defaultStyle) Background() theme.RGBA        { return self.backgroundColor }
-func (self *defaultStyle) Foreground() theme.RGBA        { return self.foregroundColor }
-func (self *defaultStyle) BorderColorTop() theme.RGBA    { return self.borderColorTop }
-func (self *defaultStyle) BorderColorBottom() theme.RGBA { return self.borderColorBottom }
-func (self *defaultStyle) BorderColorLeft() theme.RGBA   { return self.borderColorLeft }
-func (self *defaultStyle) BorderColorRight() theme.RGBA  { return self.borderColorRight }
+func (self *defaultStyle) Background() color.RGBA        { return self.backgroundColor }
+func (self *defaultStyle) Foreground() color.RGBA        { return self.foregroundColor }
+func (self *defaultStyle) BorderColorTop() color.RGBA    { return self.borderColorTop }
+func (self *defaultStyle) BorderColorBottom() color.RGBA { return self.borderColorBottom }
+func (self *defaultStyle) BorderColorLeft() color.RGBA   { return self.borderColorLeft }
+func (self *defaultStyle) BorderColorRight() color.RGBA  { return self.borderColorRight }
 func (self *defaultStyle) BorderWidthTop() float64       { return self.borderWidthTop }
 func (self *defaultStyle) BorderWidthBottom() float64    { return self.borderWidthBottom }
 func (self *defaultStyle) BorderWidthLeft() float64      { return self.borderWidthLeft }

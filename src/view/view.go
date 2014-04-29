@@ -13,11 +13,10 @@ import (
 )
 
 type Drawer interface {
-	// Traverses the view heirarchy drawing dirty
-	// views.
+	// Draw traverses the view heirarchy drawing dirty views.
 	Draw(*Surface)
 
-	// Marks the dirty path up the view heirarchy.
+	// Redraw marks the dirty path up the view heirarchy.
 	Redraw()
 }
 
