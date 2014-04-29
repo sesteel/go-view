@@ -48,4 +48,4 @@ Screenshot from the Button Example:<br>
 <img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/button_example.png>
 
 Screenshot from the Text Box Example:
-<img src=http://i.imgur.com/bLXLbXj.png>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/text_box.png>
