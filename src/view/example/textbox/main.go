@@ -19,6 +19,7 @@ func main() {
 	var waitOnExit chan bool
 	fmt.Println(color.HexRGBA(0xff77ff00))
 	win := view.NewWindow("Text Box Example", 0, 0, 600, 300)
+	win.SetSize(600, 300)
 	l := layout.NewAbsolute(win)
 	tb := widget.NewTextBox(win, msg)
 	style := tb.Style()

@@ -105,7 +105,8 @@ func (self *Window) Redraw() {
 	self.Draw(s)
 	self.surface.SetSourceSurface(s, 0, 0)
 	self.surface.Paint()
-
+	C.XFlush(self.display)
+	
 	if DEBUG_DRAW_ALL {
 		fmt.Println("Draw Window:", time.Since(before))
 	}
@@ -166,7 +167,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	/* we use these bits of info enough to want them in their own variables */
 	screen_num := C.XDefaultScreen(dpy)
 
-	win := C.XCreateWindow(dpy, C.XDefaultRootWindow(dpy), 0, 0, 300, 200, 0, vinfo.depth, C.InputOutput, vinfo.visual, C.CWColormap|C.CWBorderPixel, &attr)
+	win := C.XCreateWindow(dpy, C.XDefaultRootWindow(dpy), 0, 0, width, height, 0, vinfo.depth, C.InputOutput, vinfo.visual, C.CWColormap|C.CWBorderPixel, &attr)
 
 	C.XSync(dpy, C.True)
 

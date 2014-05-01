@@ -44,8 +44,11 @@ type Layout interface {
 	event.MouseHandler
 }
 ```
-Screenshot from the Button Example:<br>
+Screenshot from the Button Example (60% Complete):<br>
 <img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/button_example.png>
 
-Screenshot from the Text Box Example:
-<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/text_box.png>
+Screenshot from the Progress Bar Example (80% Complete):<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/progress_bar_example.png>
+
+Screenshot from the Text Box Example (30% Complete):<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/text_box_example.png>
