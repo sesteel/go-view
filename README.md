@@ -48,7 +48,7 @@ Screenshot from the Button Example:<br>
 <img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/button_example.png>
 
 Screenshot from the Checkbox Example:<br>
-<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/button_example.png>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/checkbox_example.png>
 
 Screenshot from the Progress Bar Example:<br>
 <img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/progress_bar_example.gif>
