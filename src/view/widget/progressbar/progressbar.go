@@ -18,6 +18,7 @@ func New(parent view.View, name string, max float64) *ProgressBar {
 	progressStyle.SetBackground(color.Green1)
 	progressStyle.SetBorderColor(color.Green2)
 	bar := &ProgressBar{*view.NewComponent(parent, name), progressStyle, "", 0, max}
+	bar.Style().SetBackground(color.Gray3)
 	return bar
 }
 

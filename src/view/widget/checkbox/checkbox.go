@@ -39,7 +39,7 @@ type checkbox struct {
 // New returns a checkbox drawn with the text as a right justified label
 func New(parent view.View, name, text string) *checkbox {
 	hoverStyle := view.NewStyle() 
-	hoverStyle.SetBackground(color.HexRGBA(0xFFFFFF11))
+	hoverStyle.SetBackground(color.HexRGBA(0xFFFFFF40)) 
 	hoverStyle.SetBorderColor(color.HexRGBA(0xFFFFFF00))
 	hoverStyle.SetBorderWidth(1)
 	
@@ -94,11 +94,12 @@ func (self *checkbox) Checked() bool {
 
 func (self *checkbox) Draw(s *view.Surface) {
 	style := view.CloneStyle(self.Style())
-	
+	s.DrawBackground(float64(style.PaddingLeft()), float64(style.PaddingTop()), CHECKBOX_SIZE, CHECKBOX_SIZE, style)
+				
 	if self.state & HOVER == HOVER {
 		hoverStyle := view.CloneStyle(self.hoverStyle)
 		s.DrawFilledBackground(self.hoverStyle)
-		s.DrawBackground(float64(style.PaddingLeft()), float64(style.PaddingTop()), CHECKBOX_SIZE, CHECKBOX_SIZE, style)
+
 		pad := hoverStyle.PaddingLeft()
 		hoverStyle.SetPaddingLeft(pad + CHECKBOX_SIZE)
 		s.DrawTextLeftJustifed(self.text, hoverStyle)

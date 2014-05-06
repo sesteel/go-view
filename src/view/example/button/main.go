@@ -7,7 +7,7 @@ import (
 	"view/layout"
 	"view/event"
 )
-
+  
 func main() {
 	var waitOnExit chan bool
 	win := view.NewWindow("Button Example", 100, 100, 500, 500)

@@ -128,7 +128,7 @@ func NewStyle() Style {
 	s.SetBackground(color.Gray5)
 	s.SetForeground(color.Gray11)
 	s.SetPadding(3)
-	s.SetBorderColor(color.Gray8)
+	s.SetBorderColor(color.Gray7)
 	s.SetBorderWidth(2)
 	return s
 }

@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	var waitOnExit chan bool
+	var waitOnExit chan bool  
 	win := view.NewWindow("Progress Bar Example", 100, 100, 400, 50)
 	abs := layout.NewAbsolute(win)
 	a := progressbar.New(win, "OK", 500)

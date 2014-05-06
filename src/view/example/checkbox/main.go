@@ -8,7 +8,7 @@ import (
 
 func main() {
 	var waitOnExit chan bool
-	win := view.NewWindow("Check Box Example", 100, 100, 400, 150)
+	win := view.NewWindow("Check Box Example", 100, 100, 400, 70) 
 	abs := layout.NewAbsolute(win)
 	a := checkbox.New(win, "checkbox1", "I agree to the terms and conditions.")
 	b := checkbox.New(win, "checkbox2", "Please automatically send me software updates.")
