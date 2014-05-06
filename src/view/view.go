@@ -8,7 +8,6 @@
 package view
 
 import (
-	"fmt"
 	"view/event"
 )
 
@@ -92,10 +91,6 @@ func (self *DefaultView) Draw(surface *Surface) {
 }
 
 func (self *DefaultView) Redraw() {
-	if DEBUG {
-		fmt.Println("View.Redraw()")
-	}
-
 	if self.parent != nil {
 		self.parent.Redraw()
 	}

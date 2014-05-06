@@ -123,7 +123,6 @@ func NewStyle() Style {
 //	s.SetFontName("Clear Sans")
 	s.SetFontName("Liberation Sans")
 	s.SetFontSize(13)
-	s.SetTabWidth(4)
 	s.SetFontSlant(FONT_SLANT_NORMAL)
 	s.SetFontWeight(FONT_WEIGHT_NORMAL)
 	s.SetBackground(color.Gray5)
@@ -134,12 +133,41 @@ func NewStyle() Style {
 	return s
 }
 
+func CloneStyle(style Style) Style { 
+	s := new(defaultStyle)
+	s.SetBorderWidthBottom(style.BorderWidthBottom())
+	s.SetBorderWidthTop(style.BorderWidthTop())
+	s.SetBorderWidthLeft(style.BorderWidthLeft())
+	s.SetBorderWidthRight(style.BorderWidthRight())
+	s.SetAntialias(style.Antialias())
+	s.SetFontName(style.FontName())
+	s.SetFontSize(style.FontSize())	
+	s.SetFontSlant(style.FontSlant())
+	s.SetFontWeight(style.FontWeight())
+	s.SetTabWidth(style.TabWidth())
+	s.SetBackground(style.Background())
+	s.SetForeground(style.Foreground())
+	s.SetPaddingBottom(style.PaddingBottom())
+	s.SetPaddingTop(style.PaddingTop())
+	s.SetPaddingLeft(style.PaddingLeft())
+	s.SetPaddingRight(style.PaddingRight())
+	s.SetBorderColorBottom(style.BorderColorBottom())
+	s.SetBorderColorTop(style.BorderColorTop())
+	s.SetBorderColorLeft(style.BorderColorLeft())
+	s.SetBorderColorRight(style.BorderColorRight())
+	s.SetBorderWidthBottom(style.BorderWidthBottom())
+	s.SetBorderWidthTop(style.BorderWidthTop())
+	s.SetBorderWidthLeft(style.BorderWidthLeft())
+	s.SetBorderWidthRight(style.BorderWidthRight())
+	return s
+}
+
 func (self *defaultStyle) SetAntialias(a bool)                   { self.antialias = a }
 func (self *defaultStyle) SetFontName(name string)               { self.fontName = name }
 func (self *defaultStyle) SetFontWeight(weight int)              { self.fontWeight = weight }
 func (self *defaultStyle) SetFontSlant(slant int)                { self.fontSlant = slant }
 func (self *defaultStyle) SetFontSize(size float64)              { self.fontSize = size }
-func (self *defaultStyle) SetTabWidth(width int)                 { self.tabWidth = width }
+func (self *defaultStyle) SetTabWidth(width int)                 { self.tabWidth = width } 
 func (self *defaultStyle) SetBackground(color color.RGBA)        { self.backgroundColor = color }
 func (self *defaultStyle) SetForeground(color color.RGBA)        { self.foregroundColor = color }
 func (self *defaultStyle) SetBorderColorTop(color color.RGBA)    { self.borderColorTop = color }

@@ -5,7 +5,8 @@
 // Copyright (c) 2014 Stanley Steel
 package color
 
-import ()
+import (
+)
 
 var (
 	Selection RGBA 
@@ -43,6 +44,13 @@ var (
 	Purple2 RGBA
 	Pink1   RGBA
 	Pink2   RGBA
+	
+	WindowBegin RGBA
+	WindowEnd   RGBA
+	Background  RGBA
+	Foreground  RGBA
+	ProgressBar RGBA
+	Check       RGBA	
 )
 
 func init() {
@@ -80,6 +88,14 @@ func init() {
 	Purple2 = HexRGBA(0x967ADCFF)
 	Pink1 = HexRGBA(0xEC87C0FF)
 	Pink2 = HexRGBA(0xD770ADFF)
+	
+	WindowBegin = HexRGBA(0xD770ADFF)
+	WindowEnd   = HexRGBA(0xD770ADFF)
+	Background  = HexRGBA(0xD770ADFF)
+	Foreground  = HexRGBA(0xD770ADFF)
+	ProgressBar = HexRGBA(0xD770ADFF)
+	Check       = HexRGBA(0xD770ADFF)
+	 
 }
 
 type RGBA struct {
@@ -105,6 +121,22 @@ func HexRGBA(hex uint32) RGBA {
 		clritof(uint8(hex & 0xFF))}
 }
 
-// TODO RGBAToHSBA
-// TODO RGBAToHSLA
-// TODO RGBAToHSVA
+func (self RGBA) Shade(pct float64) RGBA {
+    if pct < -1 {
+    	return RGBA{0, 0, 0, self.A}
+    } else if pct > 1 {
+    	return RGBA{1, 1, 1, self.A}
+    } else {
+    	a := 1.0
+    	b := pct 
+    	if pct < 0.0 {
+    		a = 0.0
+    		b = pct * -1.0
+    	}
+    	self.R = ((a - self.R) * b) + self.R
+		self.G = ((a - self.G) * b) + self.G
+		self.B = ((a - self.B) * b) + self.B
+	}
+	return self 	
+}
+

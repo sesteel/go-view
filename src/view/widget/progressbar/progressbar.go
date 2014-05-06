@@ -55,7 +55,7 @@ func (self *ProgressBar) Max() float64 {
 
 func (self *ProgressBar) Draw(s *view.Surface) {
 	style := self.Style()
-	s.DrawBackgroundStyle(style)
+	s.DrawFilledBackground(style)
 	if self.max != 0 || self.value != 0 {
 		
 		// TODO fix this patch
@@ -69,6 +69,6 @@ func (self *ProgressBar) Draw(s *view.Surface) {
 		self.progressStyle.SetPaddingLeft(pl)
 		self.progressStyle.SetPaddingTop(style.PaddingTop() + 1)
 		self.progressStyle.SetPaddingBottom(style.PaddingBottom() + 1)
-		s.DrawBackgroundStyle(self.progressStyle)
+		s.DrawFilledBackground(self.progressStyle)
 	}
 }

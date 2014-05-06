@@ -9,7 +9,7 @@ import (
 	"view"
 	"view/color"
 	"view/layout"
-	"view/widget"
+	"view/widget/textbox"
 	"view/event"
 	"fmt"
 )
@@ -21,7 +21,7 @@ func main() {
 	win := view.NewWindow("Text Box Example", 0, 0, 600, 300)
 	win.SetSize(600, 300)
 	l := layout.NewAbsolute(win)
-	tb := widget.NewTextBox(win, msg)
+	tb := textbox.New(win, msg)
 	style := tb.Style()
 	style.SetOverflowY(view.STYLE_OVERFLOW_Y_SCROLL)
 	

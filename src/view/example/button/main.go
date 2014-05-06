@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"view/widget"
+	"view/widget/button"
 	"view"
 	"view/layout"
 	"view/event"
@@ -13,14 +13,14 @@ func main() {
 	win := view.NewWindow("Button Example", 100, 100, 500, 500)
 	abs := layout.NewAbsolute(win)
 	
-	a := widget.NewButton(win, "OK")
+	a := button.New(win, "OK")
 	a.AddMouseButtonPressHandler(func(m event.Mouse){
 		if m.Button == event.MOUSE_BUTTON_LEFT {
 			fmt.Println("OK Pressed")
 		}
 	})
 	
-	b := widget.NewButton(win, "Cancel")
+	b := button.New(win, "Cancel")
 	b.AddMouseButtonPressHandler(func(m event.Mouse){
 		if m.Button == event.MOUSE_BUTTON_LEFT {
 			fmt.Println("Cancel Pressed")

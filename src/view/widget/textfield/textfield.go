@@ -4,7 +4,7 @@
 //
 // Copyright (c) 2014 Stanley Steel
 
-package widget
+package textfield
 
 import (
 	"view"
@@ -15,7 +15,7 @@ type TextField struct {
 	view.DefaultComponent
 }
 
-func NewTextField(parent view.View, name string) *TextField {
+func New(parent view.View, name string) *TextField {
 	return &TextField{*view.NewComponent(parent, name)} 
 }
 

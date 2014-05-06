@@ -4,7 +4,7 @@
 //
 // Copyright (c) 2014 Stanley Steel
 
-package widget
+package textbox
 
 import (
 	//	"fmt"
@@ -22,7 +22,7 @@ type TextBox struct {
 	//	model Document
 }
 
-func NewTextBox(parent view.View, text string) *TextBox {
+func New(parent view.View, text string) *TextBox {
 	tb := &TextBox{*view.NewComponent(parent, text), 0, tokenizer.Tokenize(text), new(tokenizer.Token)}
 	tb.AddMouseWheelDownHandler(func(event.Mouse) {
 		tb.verticalOffset++
