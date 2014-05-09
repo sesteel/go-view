@@ -14,7 +14,7 @@ func main() {
 	b := checkbox.New(win, "checkbox2", "Please automatically send me software updates.")
 	abs.Add(a, view.Bounds{10, 10, view.Size{380, 25}})
 	abs.Add(b, view.Bounds{10, 40, view.Size{380, 25}})
-	win.SetLayout(abs)
+	win.SetLayout(abs) 
 	win.Start()
 	<-waitOnExit
 }
