@@ -11,14 +11,11 @@ import (
 )
 
 type OverflowXStrategy int
-
+ 
 const (
 	STYLE_OVERFLOW_X_NONE OverflowXStrategy = iota
 	STYLE_OVERFLOW_X_SCROLL
 	STYLE_OVERFLOW_X_WRAP
-
-//	STYLE_OVERFLOW_X_SHADE
-//	STYLE_OVERFLOW_X_FADE
 )
 
 type OverflowYStrategy int
@@ -26,13 +23,18 @@ type OverflowYStrategy int
 const (
 	STYLE_OVERFLOW_Y_NONE OverflowYStrategy = iota
 	STYLE_OVERFLOW_Y_SCROLL
+)
 
-//	STYLE_OVERFLOW_Y_SHADE
-//	STYLE_OVERFLOW_Y_FADE
+type TextAlignment int
+
+const (
+	STYLE_TEXT_LEFT TextAlignment = iota
+	STYLE_TEXT_CENTERED
+	STYLE_TEXT_RIGHT
+	STYLE_TEXT_JUSTIFIED
 )
 
 var defaultFontOptions *FontOptions
-
 func init() {
 	defaultFontOptions = NewFontOptions()
 	defaultFontOptions.SetAntialias(ANTIALIAS_SUBPIXEL)
@@ -41,7 +43,6 @@ func init() {
 }
 
 type Style interface {
-	SetAntialias(bool)
 	SetFontName(string)
 	SetFontWeight(int)
 	SetFontSlant(int)
@@ -59,6 +60,11 @@ type Style interface {
 	SetBorderWidthBottom(float64)
 	SetBorderWidthLeft(float64)
 	SetBorderWidthRight(float64)
+	SetRadius(float64)
+	SetRadiusTopLeft(float64)
+	SetRadiusTopRight(float64)
+	SetRadiusBottomLeft(float64)
+	SetRadiusBottomRight(float64)
 	SetPadding(float64)
 	SetPaddingTop(float64)
 	SetPaddingBottom(float64)
@@ -66,8 +72,8 @@ type Style interface {
 	SetPaddingRight(float64)
 	SetOverflowX(OverflowXStrategy)
 	SetOverflowY(OverflowYStrategy)
+	SetTextAlignment(TextAlignment)
 
-	Antialias() bool
 	FontName() string
 	FontWeight() int
 	FontSlant() int
@@ -83,44 +89,52 @@ type Style interface {
 	BorderWidthBottom() float64
 	BorderWidthLeft() float64
 	BorderWidthRight() float64
+	RadiusTopLeft() float64
+	RadiusTopRight() float64
+	RadiusBottomLeft() float64
+	RadiusBottomRight() float64
 	PaddingTop() float64
 	PaddingBottom() float64
 	PaddingLeft() float64
 	PaddingRight() float64
 	OverflowX() OverflowXStrategy
 	OverflowY() OverflowYStrategy
+	TextAlignment() TextAlignment
 }
 
 type defaultStyle struct {
-	antialias         bool
-	fontName          string
-	fontWeight        int
-	fontSlant         int
-	fontSize          float64
-	tabWidth          int
-	backgroundColor   color.RGBA
-	foregroundColor   color.RGBA
-	borderColorTop    color.RGBA
-	borderColorBottom color.RGBA
-	borderColorLeft   color.RGBA
-	borderColorRight  color.RGBA
-	borderWidthTop    float64
-	borderWidthBottom float64
-	borderWidthLeft   float64
-	borderWidthRight  float64
-	paddingTop        float64
-	paddingBottom     float64
-	paddingLeft       float64
-	paddingRight      float64
-	overflowX         OverflowXStrategy
-	overflowY         OverflowYStrategy
+	antialias           bool
+	fontName            string
+	fontWeight          int
+	fontSlant           int
+	fontSize            float64
+	tabWidth            int
+	backgroundColor     color.RGBA
+	foregroundColor     color.RGBA
+	borderColorTop      color.RGBA
+	borderColorBottom   color.RGBA
+	borderColorLeft     color.RGBA
+	borderColorRight    color.RGBA
+	borderWidthTop      float64
+	borderWidthBottom   float64
+	borderWidthLeft     float64
+	borderWidthRight    float64
+	radiusTL			float64
+	radiusTR			float64
+	radiusBR			float64
+	radiusBL			float64
+	paddingTop          float64
+	paddingBottom       float64
+	paddingLeft         float64
+	paddingRight        float64
+	overflowX           OverflowXStrategy
+	overflowY           OverflowYStrategy
+	textAlignment       TextAlignment
 }
 
 func NewStyle() Style {
 	s := new(defaultStyle)
 	s.SetBorderWidth(1)
-	s.SetAntialias(true)
-//	s.SetFontName("Clear Sans")
 	s.SetFontName("Liberation Sans")
 	s.SetFontSize(13)
 	s.SetFontSlant(FONT_SLANT_NORMAL)
@@ -130,18 +144,31 @@ func NewStyle() Style {
 	s.SetPadding(3)
 	s.SetBorderColor(color.Gray7)
 	s.SetBorderWidth(2)
+	s.SetRadius(2)
+	s.SetTextAlignment(STYLE_TEXT_CENTERED)
 	return s
 }
 
-func CloneStyle(style Style) Style { 
+func NewDisabledStyle() Style {
+	s := NewStyle()
+	s.SetForeground(color.Gray9)
+	return s
+}
+
+func CloneAsDisabledStyle(style Style) Style {
+	s := CloneStyle(style)
+	s.SetForeground(color.Gray9)
+	return s
+}
+
+func CloneStyle(style Style) Style {
 	s := new(defaultStyle)
 	s.SetBorderWidthBottom(style.BorderWidthBottom())
 	s.SetBorderWidthTop(style.BorderWidthTop())
 	s.SetBorderWidthLeft(style.BorderWidthLeft())
 	s.SetBorderWidthRight(style.BorderWidthRight())
-	s.SetAntialias(style.Antialias())
 	s.SetFontName(style.FontName())
-	s.SetFontSize(style.FontSize())	
+	s.SetFontSize(style.FontSize())
 	s.SetFontSlant(style.FontSlant())
 	s.SetFontWeight(style.FontWeight())
 	s.SetTabWidth(style.TabWidth())
@@ -159,15 +186,19 @@ func CloneStyle(style Style) Style {
 	s.SetBorderWidthTop(style.BorderWidthTop())
 	s.SetBorderWidthLeft(style.BorderWidthLeft())
 	s.SetBorderWidthRight(style.BorderWidthRight())
+	s.SetTextAlignment(style.TextAlignment())
+	s.SetRadiusTopLeft(style.RadiusTopLeft())
+	s.SetRadiusTopRight(style.RadiusTopRight())
+	s.SetRadiusBottomLeft(style.RadiusBottomLeft())
+	s.SetRadiusBottomRight(style.RadiusBottomRight())
 	return s
 }
 
-func (self *defaultStyle) SetAntialias(a bool)                   { self.antialias = a }
 func (self *defaultStyle) SetFontName(name string)               { self.fontName = name }
 func (self *defaultStyle) SetFontWeight(weight int)              { self.fontWeight = weight }
 func (self *defaultStyle) SetFontSlant(slant int)                { self.fontSlant = slant }
 func (self *defaultStyle) SetFontSize(size float64)              { self.fontSize = size }
-func (self *defaultStyle) SetTabWidth(width int)                 { self.tabWidth = width } 
+func (self *defaultStyle) SetTabWidth(width int)                 { self.tabWidth = width }
 func (self *defaultStyle) SetBackground(color color.RGBA)        { self.backgroundColor = color }
 func (self *defaultStyle) SetForeground(color color.RGBA)        { self.foregroundColor = color }
 func (self *defaultStyle) SetBorderColorTop(color color.RGBA)    { self.borderColorTop = color }
@@ -182,12 +213,27 @@ func (self *defaultStyle) SetPaddingTop(padding float64)         { self.paddingT
 func (self *defaultStyle) SetPaddingBottom(padding float64)      { self.paddingBottom = padding }
 func (self *defaultStyle) SetPaddingLeft(padding float64)        { self.paddingLeft = padding }
 func (self *defaultStyle) SetPaddingRight(padding float64)       { self.paddingRight = padding }
+func (self *defaultStyle) SetRadiusTopLeft(radius float64)       { self.radiusTL = radius }
+func (self *defaultStyle) SetRadiusTopRight(radius float64)      { self.radiusTR = radius }
+func (self *defaultStyle) SetRadiusBottomLeft(radius float64)    { self.radiusBL = radius }
+func (self *defaultStyle) SetRadiusBottomRight(radius float64)   { self.radiusBR = radius }
+
+func (self *defaultStyle) SetRadius(radius float64) { 
+	self.radiusTL = radius
+	self.radiusTR = radius
+	self.radiusBL = radius
+	self.radiusBR = radius 
+}
+
+func (self *defaultStyle) SetTextAlignment(alignment TextAlignment) { 
+	self.textAlignment = alignment 
+}
 
 func (self *defaultStyle) SetBorderColor(color color.RGBA) {
-	self.borderColorTop = color
+	self.borderColorTop    = color
 	self.borderColorBottom = color
-	self.borderColorLeft = color
-	self.borderColorRight = color
+	self.borderColorLeft   = color
+	self.borderColorRight  = color
 }
 
 func (self *defaultStyle) SetBorderWidth(width float64) {
@@ -212,7 +258,6 @@ func (self *defaultStyle) SetOverflowY(overflowY OverflowYStrategy) {
 	self.overflowY = overflowY
 }
 
-func (self *defaultStyle) Antialias() bool               { return self.antialias }
 func (self *defaultStyle) FontName() string              { return self.fontName }
 func (self *defaultStyle) FontWeight() int               { return self.fontWeight }
 func (self *defaultStyle) FontSlant() int                { return self.fontSlant }
@@ -234,3 +279,12 @@ func (self *defaultStyle) PaddingLeft() float64          { return self.paddingLe
 func (self *defaultStyle) PaddingRight() float64         { return self.paddingRight }
 func (self *defaultStyle) OverflowX() OverflowXStrategy  { return self.overflowX }
 func (self *defaultStyle) OverflowY() OverflowYStrategy  { return self.overflowY }
+func (self *defaultStyle) RadiusTopLeft() float64        { return self.radiusTL}
+func (self *defaultStyle) RadiusTopRight() float64       { return self.radiusTR}
+func (self *defaultStyle) RadiusBottomLeft() float64     { return self.radiusBL}
+func (self *defaultStyle) RadiusBottomRight() float64    { return self.radiusBR}
+
+func (self *defaultStyle) TextAlignment() TextAlignment { 
+	return self.textAlignment 
+}
+

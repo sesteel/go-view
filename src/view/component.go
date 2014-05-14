@@ -77,11 +77,11 @@ func (self *DefaultComponent) Draw(surface *Surface) {
 		return
 	}
 
-	if style.Antialias() {
+//	if style.Antialias() {
 		surface.SetAntialias(ANTIALIAS_SUBPIXEL)
-	} else {
-		surface.SetAntialias(ANTIALIAS_NONE)
-	}
+//	} else {
+//		surface.SetAntialias(ANTIALIAS_NONE)
+//	}
 
 	surface.SetSourceRGBA(style.Background())
 	surface.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 0, 0, 0, 0)

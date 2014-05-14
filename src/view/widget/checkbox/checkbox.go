@@ -39,9 +39,9 @@ type checkbox struct {
 // New returns a checkbox drawn with the text as a right justified label
 func New(parent view.View, name, text string) *checkbox {
 	hoverStyle := view.NewStyle() 
-	hoverStyle.SetBackground(color.HexRGBA(0xFFFFFF40)) 
+	hoverStyle.SetBackground(color.HexRGBA(0xFFFFFF00)) 
 	hoverStyle.SetBorderColor(color.HexRGBA(0xFFFFFF00))
-	hoverStyle.SetBorderWidth(1)
+	hoverStyle.SetBorderWidth(1)	
 	
 	checkStyle := view.NewStyle()
 	checkStyle.SetFontName("FontAwesome")

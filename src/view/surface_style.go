@@ -17,11 +17,18 @@ func (self *Surface) DrawBackground(x, y, w, h float64, style Style) {
 	self.DrawRightBorder(x, y, w, h, radius_x, radius_y, c1, c2, style)
 	self.DrawBottomBorder(x, y, w, h, radius_x, radius_y, c1, c2, style)
 	self.DrawLeftBorder(x, y, h, radius_x, radius_y, c1, c2, style)
-
+	
+	if style.Background().A == 0 {
+		return
+	}
+	
 	self.SetSourceRGBA(style.Background())
 	self.RoundedRectangle(float64(x), float64(y), float64(w), float64(h), 2, 2, 2, 2)
 	self.Fill()
 }
+
+//what about the radius???  
+//can't genericize getBorderConstraints....
 
 func (self *Surface) getBorderConstraints(style Style) (x, y, w, h, radius_x, radius_y, c1, c2 float64) {
 	x = style.PaddingLeft()
@@ -47,6 +54,9 @@ func (self *Surface) getBorderConstraints(style Style) (x, y, w, h, radius_x, ra
 }
 
 func (self *Surface) DrawTopBorder(x, y, w, radius_x, radius_y, c1, c2 float64, style Style) {
+	if style.BorderColorTop().A == 0 {
+		return
+	}
 	self.SetSourceRGBA(style.BorderColorTop())
 	self.NewPath()
 	self.SetLineWidth(style.BorderWidthTop())
@@ -57,6 +67,9 @@ func (self *Surface) DrawTopBorder(x, y, w, radius_x, radius_y, c1, c2 float64, 
 }
 
 func (self *Surface) DrawRightBorder(x, y, w, h, radius_x, radius_y, c1, c2 float64, style Style) {
+	if style.BorderColorRight().A == 0 {
+		return
+	}
 	self.SetSourceRGBA(style.BorderColorRight())
 	self.NewPath()
 	self.SetLineWidth(style.BorderWidthRight())
@@ -67,6 +80,9 @@ func (self *Surface) DrawRightBorder(x, y, w, h, radius_x, radius_y, c1, c2 floa
 }
 
 func (self *Surface) DrawBottomBorder(x, y, w, h, radius_x, radius_y, c1, c2 float64, style Style) {
+	if style.BorderColorBottom().A == 0 {
+		return
+	}
 	self.SetSourceRGBA(style.BorderColorBottom())
 	self.NewPath()
 	self.SetLineWidth(style.BorderWidthBottom())
@@ -77,6 +93,9 @@ func (self *Surface) DrawBottomBorder(x, y, w, h, radius_x, radius_y, c1, c2 flo
 }
 
 func (self *Surface) DrawLeftBorder(x, y, h, radius_x, radius_y, c1, c2 float64, style Style) {
+	if style.BorderColorLeft().A == 0 {
+		return
+	}
 	self.SetSourceRGBA(style.BorderColorLeft())
 	self.NewPath()
 	self.SetLineWidth(style.BorderWidthLeft())
@@ -102,7 +121,9 @@ func (self *Surface) DrawTextLeftJustifed(text string, style Style) {
 	self.ShowText(text)
 }
 
+
 func (self *Surface) DrawTextCentered(text string, style Style) {
+	// TODO fix this to not center vertically
 	self.ConfigureFont(style)
 	extents := self.TextExtents(text)
 	x := float64(self.Width())/2 + style.PaddingLeft() - style.PaddingRight() - (extents.Width / 2)

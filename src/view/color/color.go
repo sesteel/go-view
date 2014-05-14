@@ -10,39 +10,40 @@ import ()
 var (
 	Selection RGBA
 
-	White   RGBA
-	Gray1   RGBA
-	Gray2   RGBA
-	Gray3   RGBA
-	Gray4   RGBA
-	Gray5   RGBA
-	Gray6   RGBA
-	Gray7   RGBA
-	Gray8   RGBA
-	Gray9   RGBA
-	Gray10  RGBA
-	Gray11  RGBA
-	Gray12  RGBA
-	Gray13  RGBA
-	Black   RGBA
-	Blue1   RGBA
-	Blue2   RGBA
-	Cyan1   RGBA
-	Cyan2   RGBA
-	Teal1   RGBA
-	Teal2   RGBA
-	Green1  RGBA
-	Green2  RGBA
-	Yellow1 RGBA
-	Yellow2 RGBA
-	Orange1 RGBA
-	Orange2 RGBA
-	Red1    RGBA
-	Red2    RGBA
-	Purple1 RGBA
-	Purple2 RGBA
-	Pink1   RGBA
-	Pink2   RGBA
+	White       RGBA
+	Gray1       RGBA
+	Gray2       RGBA
+	Gray3       RGBA
+	Gray4       RGBA
+	Gray5       RGBA
+	Gray6       RGBA
+	Gray7       RGBA
+	Gray8       RGBA
+	Gray9       RGBA
+	Gray10      RGBA
+	Gray11      RGBA
+	Gray12      RGBA
+	Gray13      RGBA
+	Black       RGBA
+	Blue1       RGBA
+	Blue2       RGBA
+	Cyan1       RGBA
+	Cyan2       RGBA
+	Teal1       RGBA
+	Teal2       RGBA
+	Green1      RGBA
+	Green2      RGBA
+	Yellow1     RGBA
+	Yellow2     RGBA
+	Orange1     RGBA
+	Orange2     RGBA
+	Red1        RGBA
+	Red2        RGBA
+	Purple1     RGBA
+	Purple2     RGBA
+	Pink1       RGBA
+	Pink2       RGBA
+	Transparent RGBA
 
 	WindowBegin      RGBA
 	WindowEnd        RGBA

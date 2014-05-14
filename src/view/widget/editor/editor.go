@@ -8,17 +8,23 @@ package editor
 
 import (
 	"view"
-	"view/doc"
 )	
 
 type Editor struct {
 	view.DefaultComponent
-	model doc.Document
+	model Model
 }
 
-func NewEditor(parent view.View, name string, model doc.Document) {
+func New(parent view.View, name string, model Model) *Editor {
 	e := &Editor{*view.NewComponent(parent, name), model}
+	e.Style().SetPadding(0)
 	e.SetParent(parent)
 	e.SetName(name)
+	return e
+}
+
+func (self *Editor) Draw(s *view.Surface) {
+	s.DrawFilledBackground(self.Style())
+	
 	
 }
