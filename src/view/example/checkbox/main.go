@@ -15,6 +15,6 @@ func main() {
 	abs.Add(a, view.Bounds{10, 10, view.Size{380, 25}})
 	abs.Add(b, view.Bounds{10, 40, view.Size{380, 25}})
 	win.SetLayout(abs) 
-	win.Start()
+	win.Start() 
 	<-waitOnExit
 }

@@ -377,6 +377,10 @@ func (self *Surface) ShowPage() {
 	C.cairo_show_page(self.context)
 }
 
+//func (self *Surface) PatternSetExtend(extend Extend) {
+//	C.cairo_pattern_set_extend(self.context, C.cairo_extend_t(extend))
+//}
+
 ///////////////////////////////////////////////////////////////////////////////
 // Insideness testing
 

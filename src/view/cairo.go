@@ -312,10 +312,10 @@ const (
 )
 
 // cairo_extend_t
-type Extent int
+type Extend int
 
 const (
-	EXTEND_NONE Extent = iota
+	EXTEND_NONE Extend = iota
 	EXTEND_REPEAT
 	EXTEND_REFLECT
 	EXTEND_PAD
@@ -413,6 +413,12 @@ func NewLinearPattern(x1, y1, x2, y2 float64) *Pattern {
 
 func NewRadialPattern(x1, y1, r1, x2, y2, r2 float64) *Pattern {
 	p := &Pattern{C.cairo_pattern_create_radial(C.double(x1), C.double(y1), C.double(r1), C.double(x2), C.double(y2), C.double(r2))}
+	return p
+}
+
+// NewSurfacePattern returns a pattern which allows you to create effects like repeating an image
+func NewSurfacePattern(s *Surface) *Pattern {
+	p := &Pattern{C.cairo_pattern_create_for_surface(s.surface)}
 	return p
 }
 

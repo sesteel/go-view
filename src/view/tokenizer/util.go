@@ -16,8 +16,8 @@ func ToLines(tkns []*Token) [][]*Token {
 		tkn := tkns[i]
 		line = append(line, tkn)
 		if tkn.Type == NEWLINE {
-			line = make([]*Token, 0)
 			lines = append(lines, line)
+			line = make([]*Token, 0)
 		}
 	}
 	return lines

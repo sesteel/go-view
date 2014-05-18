@@ -6,7 +6,7 @@ import (
 	"view/tokenizer"
 )
 
-func (self *Surface) drawTextToken(tkn *tokenizer.Token, bounds Bounds, style Style) {
+func (self *Surface) DrawTextToken(tkn *tokenizer.Token, bounds Bounds, style Style) {
 	if tkn.Selected {
 		self.SetSourceRGBA(color.Selection)
 		self.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height)
@@ -93,7 +93,7 @@ func (self *Surface) DrawWrappedPlainText(tokens []*tokenizer.Token, bounds Boun
 
 		if y < bounds.Height && ScrollOffset(lines) >= offset {
 			linesDrawn = float64(lines) - float64(offset)
-			self.drawTextToken(t, b, style)
+			self.DrawTextToken(t, b, style)
 		}
 
 		x += e.Xadvance

@@ -86,9 +86,18 @@ func (self *Window) Draw(surface *Surface) {
 	p := NewLinearPattern(0, 0, 0, h)
 	defer p.Destroy()
 	p.AddColorStop(0, color.Gray3)
-	p.AddColorStop(1, color.Gray6)
+	p.AddColorStop(1, color.Gray5)
 	surface.SetSource(p)
 	surface.Paint()
+	
+	// tiled alpha background
+//	tile := NewSurfaceFromPNG("res/textures/concrete.png")
+//	defer tile.Destroy()
+//	pattern1 := C.cairo_pattern_create_for_surface(tile.surface)
+//	C.cairo_set_source(surface.context, pattern1)
+//  	C.cairo_pattern_set_extend(C.cairo_get_source(surface.context), C.cairo_extend_t(EXTEND_REPEAT))
+//	surface.Paint()
+	
 	if self.layout != nil {
 		self.layout.Draw(surface)
 	}

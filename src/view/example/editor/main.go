@@ -6,9 +6,11 @@
 package main
 
 import (
+	"fmt"
 	"view"
 	"view/layout"
 	"view/widget/editor"
+	"view/tokenizer" 
 )
 
 var TEXT = `
@@ -16,18 +18,24 @@ package main
 
 import "fmt"
 
-func main() {
+func main() { 
 	fmt.Println("Hello World!")
 }
 `
 
 func main() {
-	mdl := editor.NewModel("main.go", TEXT)
+	tkns := tokenizer.Tokenize(TEXT)
+	for _, t := range tkns {
+		fmt.Println("->", t)
+	}
+	
 	var waitOnExit chan bool
-	win := view.NewWindow("Text Box Example", 0, 0, 600, 300)
+	win := view.NewWindow("Editor Example", 0, 0, 600, 300)
 	win.SetSize(600, 300)
 	l  := layout.NewFill(win)
-	tb := editor.New(win, "editor", mdl)
+	
+	mdl := editor.NewModel("main.go", TEXT)
+	tb := editor.New(win, "editor", mdl)  
 	l.SetChild(tb) 
 	win.SetLayout(l)
 	win.Start()

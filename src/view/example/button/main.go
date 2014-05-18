@@ -16,7 +16,7 @@ func main() {
 	a := button.New(win, "OK")
 	a.AddMouseButtonPressHandler(func(m event.Mouse){
 		if m.Button == event.MOUSE_BUTTON_LEFT {
-			fmt.Println("OK Pressed")
+			fmt.Println("OK Pressed") 
 		}
 	})
 	
