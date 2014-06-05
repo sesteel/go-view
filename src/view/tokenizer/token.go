@@ -11,7 +11,7 @@ import (
 )
 
 type Token struct {
-  Type     int
+  Type     TokenClass
   Value    string
   Code     string
   Line     int

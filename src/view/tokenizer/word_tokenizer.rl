@@ -29,7 +29,7 @@ func Tokenize(text string) []*Token {
     var token *Token  
     noop(ts, te, act)
    	
-    tkn := func(t int, s string) {
+    tkn := func(t TokenClass, s string) {
       val := string(data[ts:te])
       code:= codes[t]
       token = &Token{t, val, code, lineCount, ts-lineStart, te-lineStart, false}

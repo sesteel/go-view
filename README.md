@@ -55,3 +55,16 @@ Screenshot from the Progress Bar Example:<br>
 
 Screenshot from the Text Box Example:<br>
 <img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/text_box_example.png>
+
+Supported Unicode:
+0x0000 - 0x007F : Basic Latin (128)
+
+0x0080 - 0x00FF : Latin-1 Supplement (128)
+
+0x0100 - 0x017F : Latin Extended-A (128)
+
+0x0180 - 0x024F : Latin Extended-B (208)
+
+0x0250 - 0x02AF : IPA Extensions (96) 
+
+

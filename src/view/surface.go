@@ -535,6 +535,52 @@ func (self *Surface) TextExtents(text string) *TextExtents {
 //	return nil
 //}
 
+// DrawRune draws unicode characters at the given position 
+// in the font currently configured. Currently, it only 
+// supports Latin characters.
+func (self *Surface) DrawRune(r rune, x, y float64) { 
+  var delta rune = 29
+  
+  // TODO - The runes do not map directly to glyphs.
+  //        The various ranges of printable unicode 
+  //        characters need to be mapped properly 
+  //        such that the correct characters are 
+  //        displayed.  Or, a better solution found.
+  // 
+  //        We currently support 0x0000 - 0x02AF
+  if r > '~' {
+  	delta = 62
+  } 
+  
+  var glyph []C.cairo_glyph_t = []C.cairo_glyph_t{C.cairo_glyph_t{C.ulong(r - delta), C.double(x), C.double(y)}}
+  C.cairo_show_glyphs(self.context, &glyph[0], 1)
+}
+
+func (self *Surface) DrawFontGlyphs() {    
+  self.SelectFontFace("Monospace", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)	
+//  C.cairo_select_font_face(self.context, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+  C.cairo_set_font_size(self.context, 16)
+
+  var n_glyphs C.int = 40 * 35
+  var glyphs []C.cairo_glyph_t = make([]C.cairo_glyph_t, n_glyphs, n_glyphs)
+
+  var i C.ulong = 0  
+  var x C.double
+  var y C.double
+  
+  for y = 0; y < 40; y++ {
+      for x = 0; x < 35; x++ {
+      	  var g C.cairo_glyph_t
+      	  g.index = i
+      	  g.x = x * 15 + 20
+      	  g.y = y * 18 + 20
+          glyphs[i] = g
+          i++
+      }
+  }
+  
+  C.cairo_show_glyphs(self.context, &glyphs[0], n_glyphs)
+}
 ///////////////////////////////////////////////////////////////////////////////
 // Error status queries
 

@@ -8,7 +8,6 @@ import (
 type ProgressBar struct {
 	view.DefaultComponent
 	progressStyle view.Style
-	text          string
 	value         float64
 	max           float64
 }
@@ -17,7 +16,7 @@ func New(parent view.View, name string, max float64) *ProgressBar {
 	progressStyle := view.NewStyle()
 	progressStyle.SetBackground(color.Green1)
 	progressStyle.SetBorderColor(color.Green2)
-	bar := &ProgressBar{*view.NewComponent(parent, name), progressStyle, "", 0, max}
+	bar := &ProgressBar{*view.NewComponent(parent, name), progressStyle, 0, max}
 	bar.Style().SetBackground(color.Gray3)
 	return bar
 }
@@ -28,14 +27,6 @@ func (self *ProgressBar) SetProgressStyle(style view.Style) {
 
 func (self *ProgressBar) ProgressStyle() view.Style {
 	return self.progressStyle
-}
-
-func (self *ProgressBar) SetText(text string) {
-	self.text = text
-}
-
-func (self *ProgressBar) Text() string {
-	return self.text
 }
 
 func (self *ProgressBar) SetValue(v float64) {

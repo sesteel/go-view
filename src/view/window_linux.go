@@ -82,12 +82,13 @@ func (self *Window) SetSize(width, height float64) {
 
 func (self *Window) Draw(surface *Surface) {
 	//	surface.SetSourceRGBA(self.Style().Background())
-	_, h := self.Size()
-	p := NewLinearPattern(0, 0, 0, h)
-	defer p.Destroy()
-	p.AddColorStop(0, color.Gray3)
-	p.AddColorStop(1, color.Gray5)
-	surface.SetSource(p)
+//	_, h := self.Size()
+//	p := NewLinearPattern(0, 0, 0, h)
+//	defer p.Destroy()
+//	p.AddColorStop(0, color.Gray3)
+//	p.AddColorStop(1, color.Gray5)
+//	surface.SetSource(p)
+	surface.SetSourceRGBA(color.Gray3)
 	surface.Paint()
 	
 	// tiled alpha background
@@ -285,6 +286,15 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				defer C.XFree(unsafe.Pointer(&keysym))
 				symbol := uint(*keysym)
 				event.DispatchKeyPress(keymap[symbol])
+//				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
+			
+			case C.KeyRelease:
+				evt := (*C.XKeyEvent)(unsafe.Pointer(&ev[0]))
+				var keysyms_per_keycode_return C.int
+				keysym := C.XGetKeyboardMapping(dpy, (C.KeyCode)(evt.keycode), 1, &keysyms_per_keycode_return)
+				defer C.XFree(unsafe.Pointer(&keysym))
+				symbol := uint(*keysym)
+				event.DispatchKeyRelease(keymap[symbol])
 //				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
 
 			default:

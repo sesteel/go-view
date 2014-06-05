@@ -167,6 +167,7 @@ func DispatchKeyPress(key Key) {
 	} else if kh, ok := focussedElement.(EventDispatcher); ok {
 		kh.KeyPress(keyboard)
 	}
+	keyboard.Value = NONE
 }
 
 func DispatchKeyRelease(key Key) {
@@ -181,5 +182,6 @@ func DispatchKeyRelease(key Key) {
 	} else if kh, ok := focussedElement.(EventDispatcher); ok {
 		kh.KeyRelease(keyboard)
 	}
+	keyboard.Value = NONE
 }
 

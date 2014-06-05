@@ -16,7 +16,7 @@ package tokenizer
 // line 14 "word_tokenizer.rl"
 
 // line 19 "word_tokenizer.go"
-var _bindingGenerator_actions []byte = []byte{
+var _bindingGenerator_actions []byte = []byte{ 
 	0, 1, 0, 1, 1, 1, 2, 1, 7, 
 	1, 8, 1, 9, 1, 10, 1, 11, 
 	1, 12, 1, 13, 1, 14, 1, 15, 
@@ -68,7 +68,7 @@ func Tokenize(text string) []*Token {
     var token *Token  
     noop(ts, te, act)
    	
-    tkn := func(t int, s string) {
+    tkn := func(t TokenClass, s string) {
       val := string(data[ts:te])
       code:= codes[t]
       token = &Token{t, val, code, lineCount, ts-lineStart, te-lineStart, false}

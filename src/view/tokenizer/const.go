@@ -9,7 +9,7 @@ import (
 
 )
 
-var codes map[int]string = map[int]string {
+var codes map[TokenClass]string = map[TokenClass]string {
   PURE           :"A",
   TYPE           :"T",
   INTERFACE      :"I",
@@ -160,8 +160,9 @@ var Names []string = []string {
   "'",
   "|"}
 
+type TokenClass int
 const (
-  PURE = iota
+  PURE TokenClass = iota
   TYPE 
   INTERFACE
   OP

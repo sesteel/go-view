@@ -6,12 +6,9 @@
 
 package tokenizer
 
-import ()
-
-func ToLines(tkns []*Token) [][]*Token {
+func ToLinesOfTokens(tkns []*Token) [][]*Token {
 	lines := make([][]*Token, 0, 0)
 	line := make([]*Token, 0)
-	lines = append(lines, line)
 	for i := 0; i < len(tkns); i++ {
 		tkn := tkns[i]
 		line = append(line, tkn)
@@ -23,22 +20,20 @@ func ToLines(tkns []*Token) [][]*Token {
 	return lines
 }
 
-type Rune struct {
-	Type int
-	Point rune 
+func ToLinesOfCharacters(tkns []*Token) [][]Character {
+	lines := make([][]Character, 0, 0)
+	line := make([]Character, 0)
+	pos := 0
+	for i := 0; i < len(tkns); i++ {
+		tkn := tkns[i]
+		for _, r := range tkn.Value {
+			line = append(line, Character{pos, tkn, r})
+			pos++
+		}
+		if tkn.Type == NEWLINE {
+			lines = append(lines, line)
+			line = make([]Character, 0)
+		}
+	}
+	return lines
 }
-
-//func ToRunes(tkns []*Token) [][]*codepoint {
-//	lines := make([][]*Token, 0, 0)
-//	line := make([]*Token, 0)
-//	lines = append(lines, line)
-//	for i := 0; i < len(tkns); i++ {
-//		tkn := tkns[i]
-//		line = append(line, tkn)
-//		if tkn.Type == NEWLINE {
-//			line = make([]*Token, 0)
-//			lines = append(lines, line)
-//		}
-//	}
-//	return lines
-//}
