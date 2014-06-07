@@ -3,29 +3,34 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 // Copyright (c) 2014 Stanley Steel
-
 package editor
 
 import (
 	"view"
 	"view/color"
 	"view/tokenizer"
+	"view/tokenizer/plaintext"
 	//	"fmt"
 )
 
+// TokenStyle provides the styling for various token types or subtypes.
 type TokenStyle struct {
 	Weight int
 	Slant  int
 	Color  color.RGBA
 }
 
+// Lines is an alias to hold lines of characters.
 type Lines [][]tokenizer.Character
 
+// Cursor is used to store the position of the cursor via line and column.
 type Cursor struct {
 	Line   int
 	Column int
 }
 
+// Selection represents a character range where text has been 
+// selected; commonly used for copy and cutting operations.
 type Selection struct {
 	StartLine   int
 	StartColumn int
@@ -33,10 +38,13 @@ type Selection struct {
 	EndColumn   int
 }
 
+// Error represent a range of characters where an error has occurred.
 type Error Selection
 
+// Editor is a simple widget by which one can enter and edit text.
 type Editor struct {
 	view.DefaultComponent
+	Tokenizer       tokenizer.Tokenizer
 	Text            string // TODO Consider how to optimize this away as it gets created repeatedly
 	Lines           Lines
 	MarginColumn    int
@@ -59,14 +67,19 @@ type Editor struct {
 	Errors          []Error
 }
 
+// New creates and returns a simple Editor object with its defaults set. 
 func New(parent view.View, name string, text string) *Editor {
 	if len(text) == 0 {
 		text = " "
 	}
+	
+	tknzr := plaintext.New()
+	
 	e := &Editor{
 		*view.NewComponent(parent, name),
+		tknzr,
 		text,
-		tokenizer.ToLinesOfCharacters(tokenizer.Tokenize(text)),
+		tokenizer.ToLinesOfCharacters(tknzr.Tokenize(text)),
 		80,
 		true,
 		color.RGBA{color.Pink1.R, color.Pink1.G, color.Pink1.B, 0.1},
@@ -152,31 +165,7 @@ func (self *Editor) drawBody(s *view.Surface) {
 	defaultStyle := &TokenStyle{style.FontWeight(), style.FontSlant(), style.Foreground()}
 	for _, l := range self.Lines {
 		for col, c := range l {
-			var ts *TokenStyle
-			if tokenClass != c.Token.Type {
-				tokenClass = c.Token.Type
-				switch c.Token.Type {
-					case tokenizer.IDENTIFIER:
-						if self.Keywords[c.Token.Value] {
-							ts = &self.KeywordStyle
-						} else if self.Primitives[c.Token.Value] {
-							ts = &self.PrimitiveStyle
-						} else {
-							ts = defaultStyle	
-						}
-					case tokenizer.STRING_LIT:
-						ts = &self.StringStyle
-					default:
-						ts = defaultStyle	 	
-				}
-				
-				if ts != tokenStyle {
-					s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
-					s.SetSourceRGBA(ts.Color)
-					tokenStyle = ts
-				}
-			}
-
+			
 			if c.Token.Type == tokenizer.NEWLINE {
 				updatePos()
 				self.drawWhitespace(s, 182, b)
@@ -195,6 +184,30 @@ func (self *Editor) drawBody(s *view.Surface) {
 				b.X += se.Xadvance * advance
 
 			} else {
+				var ts *TokenStyle
+				if tokenClass != c.Token.Type {
+					tokenClass = c.Token.Type
+					switch c.Token.Type {
+						case tokenizer.IDENTIFIER:
+							if self.Keywords[c.Token.Value] {
+								ts = &self.KeywordStyle
+							} else if self.Primitives[c.Token.Value] {
+								ts = &self.PrimitiveStyle
+							} else {
+								ts = defaultStyle	
+							}
+						case tokenizer.STRING_LITERAL:
+							ts = &self.StringStyle
+						default:
+							ts = defaultStyle	 	
+					}
+					
+					if ts != tokenStyle {
+						s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
+						s.SetSourceRGBA(ts.Color)
+						tokenStyle = ts
+					}
+				}
 				updatePos()
 				s.DrawRune(c.Rune, b.X, b.Y)
 				ex := s.TextExtents(string(c.Rune))

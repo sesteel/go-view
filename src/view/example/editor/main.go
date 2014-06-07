@@ -6,20 +6,13 @@
 package main
 
 import (
-	"fmt"
 	"view"
 	"view/layout"
 	"view/color"
-	"view/widget/editor"
-	"view/tokenizer"  
+	"view/widget/editor"  
 )
 
 func main() {
-	tkns := tokenizer.Tokenize(TEXT)
-	for _, t := range tkns {
-		fmt.Println("->", t)
-	} 
-	 
 	var waitOnExit chan bool
 	win := view.NewWindow("Editor Example", 0, 0, 600, 300)
 	win.SetSize(1200, 600)

@@ -54,7 +54,7 @@ func (self *Surface) DrawWrappedPlainText(tokens []*tokenizer.Token, bounds Boun
 			EXTENTS[t.Value] = e
 		}
 
-		if t.Type == tokenizer.NEWLINE {
+		if t.Value == "\n" {
 			x = 0
 			if ScrollOffset(lines) >= offset {
 				y += spaceExtents.Height
@@ -63,7 +63,7 @@ func (self *Surface) DrawWrappedPlainText(tokens []*tokenizer.Token, bounds Boun
 			continue
 		}
 
-		if t.Type == tokenizer.TAB {
+		if t.Value == "\t" {
 			x += spaceExtents.Width * float64(style.TabWidth())
 			continue
 		}

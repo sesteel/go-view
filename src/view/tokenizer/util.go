@@ -12,7 +12,7 @@ func ToLinesOfTokens(tkns []*Token) [][]*Token {
 	for i := 0; i < len(tkns); i++ {
 		tkn := tkns[i]
 		line = append(line, tkn)
-		if tkn.Type == NEWLINE {
+		if tkn.Value == "\n" {
 			lines = append(lines, line)
 			line = make([]*Token, 0)
 		}
@@ -30,7 +30,7 @@ func ToLinesOfCharacters(tkns []*Token) [][]Character {
 			line = append(line, Character{pos, tkn, r})
 			pos++
 		}
-		if tkn.Type == NEWLINE {
+		if tkn.Value == "\n" {
 			lines = append(lines, line)
 			line = make([]Character, 0)
 		}
