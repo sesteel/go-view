@@ -1,7 +1,7 @@
 go-view
 =======
 
-Go-View is a project to build a rudimentary GUI library for Go upon a Cairo backend.  Current work centers around building foundational pieces upon which more complexity can be derived.  The core concepts revolve around the View interface (which is sadly a God interface at the moment), a Component interface, a Composite interface, and a Layout interface.  Types which implement these interfaces are used to construct a view tree in a similar fashion to most other GUI toolkits and libraries.	
+Go-View is an experimental project to build a rudimentary GUI library for Go upon a Cairo backend.  Current work centers around building foundational pieces upon which more complexity can be derived.  The core concepts revolve around the View interface, a Component interface, a Composite interface, and a Layout interface.  Types which implement these interfaces are used to construct a view tree in a similar fashion to most other GUI toolkits and libraries.  There are severe limitations and the project is really meant to explore tangential issues surrounding UI and UX design.
 
 ```go
 type Drawer interface {
@@ -65,6 +65,6 @@ Supported Unicode:
 
 0x0180 - 0x024F : Latin Extended-B (208)
 
-0x0250 - 0x02AF : IPA Extensions (96) 
+0x0250 - 0x02AF : IPA Extensions (96)
 
 
