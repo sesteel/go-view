@@ -1,6 +1,7 @@
 package main 
 
 import (
+	. "view/common"
 	"view/widget/progressbar"
 	"view"
 	"view/layout"
@@ -12,7 +13,7 @@ func main() {
 	win := view.NewWindow("Progress Bar Example", 100, 100, 400, 50)
 	abs := layout.NewAbsolute(win)
 	a := progressbar.New(win, "OK", 500)
-	abs.Add(a, view.Bounds{10, 10, view.Size{380, 25}})
+	abs.Add(a, Bounds{10, 10, Size{380, 25}})
 	win.SetLayout(abs)
 	win.Start()
 	for i:=0.0; i <= 501.0; i++ {

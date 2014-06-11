@@ -7,6 +7,7 @@ package layout
 
 import (
 	"view"
+	. "view/common"
 	"view/event"
 )
 
@@ -24,11 +25,11 @@ func NewAbsolute(target view.View) *Absolute {
 
 type absGroup struct {
 	view    view.View
-	bounds  view.Bounds
+	bounds  Bounds
 	mouseIn bool
 }
 
-func (self *Absolute) Add(d view.View, bounds view.Bounds) {
+func (self *Absolute) Add(d view.View, bounds Bounds) {
 	self.children = append(self.children, &absGroup{d, bounds, false})
 }
 

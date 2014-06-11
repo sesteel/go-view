@@ -135,6 +135,15 @@ const (
   CURSOR
 )
 
+func (self TokenClass) Whitespace() bool {
+	switch self {
+		case SPACE, TAB, CR, NEWLINE:
+			return true
+		default:
+			return false	
+	} 
+}
+
 type Token struct {
   Type     TokenClass
   Value    string

@@ -1,6 +1,7 @@
 package view
 
 import (
+	. "view/common"
 	"fmt"
 	"view/color"
 	"view/tokenizer"

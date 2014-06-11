@@ -6,6 +6,7 @@
 package layout
 
 import (
+	. "view/common"
 	"view"
 )
 
@@ -41,7 +42,7 @@ func (self *VSplit) Right() view.Drawer {
 	return self.right
 }
 
-func (self *VSplit) Draw(bounds view.Bounds, offset view.ScrollOffset) {
+func (self *VSplit) Draw(bounds Bounds, offset view.ScrollOffset) {
 //	s := self.target.Surface()
 //	s.Rectangle(float64(0), float64(0), )
 //	s.Clip()

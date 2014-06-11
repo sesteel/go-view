@@ -27,10 +27,18 @@ func (self *Editor) addKeyboardHandler() {
 			return
 
 		case key.ARROW_LEFT:
-			self.MoveCursorsLeft()
+			if k.Ctrl() {
+				self.MoveCursorsToPreviousToken()
+			} else {
+				self.MoveCursorsLeft()
+			}
 
 		case key.ARROW_RIGHT:
-			self.MoveCursorsRight()
+			if k.Ctrl() {
+				self.MoveCursorsToNextToken()
+			} else {
+				self.MoveCursorsRight()
+			}
 
 		case key.ARROW_UP:
 			self.MoveCursorsUp()
@@ -46,6 +54,12 @@ func (self *Editor) addKeyboardHandler() {
 
 		case key.RETURN:
 			self.InsertCharAtCursors('\n')
+		
+		case key.HOME:
+			self.MoveCursorToLineStart()
+		
+		case key.END:
+			self.MoveCursorToLineEnd()		
 
 		default:
 			self.InsertCharAtCursors(k.Rune())

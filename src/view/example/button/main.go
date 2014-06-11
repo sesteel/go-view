@@ -1,6 +1,7 @@
 package main 
 
 import (
+	. "view/common"
 	"fmt"
 	"view/widget/button"
 	"view"
@@ -27,8 +28,8 @@ func main() {
 		}
 	})
 	
-	abs.Add(a, view.Bounds{10, 10, view.Size{80, 30}})
-	abs.Add(b, view.Bounds{100, 10, view.Size{80, 30}})
+	abs.Add(a, Bounds{10, 10, Size{80, 30}})
+	abs.Add(b, Bounds{100, 10, Size{80, 30}})
 	win.SetLayout(abs)
 	win.Start()
 	<- waitOnExit  

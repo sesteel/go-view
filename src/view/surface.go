@@ -1,8 +1,8 @@
 // Extended from https://github.com/ungerik/go-cairo
-// 
+//
 // Copyright © 2002 University of Southern California
 // Copyright © 2005 Red Hat, Inc.
-// 
+//
 // This library is free software; you can redistribute it and/or
 // modify it either under the terms of the GNU Lesser General Public
 // License version 2.1 as published by the Free Software Foundation
@@ -10,27 +10,27 @@
 // Public License Version 1.1 (the "MPL"). If you do not alter this
 // notice, a recipient may use your version of this file under either
 // the MPL or the LGPL.
-// 
+//
 // You should have received a copy of the LGPL along with this library
 // in the file COPYING-LGPL-2.1; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Suite 500, Boston, MA 02110-1335, USA
 // You should have received a copy of the MPL along with this library
 // in the file COPYING-MPL-1.1
-// 
+//
 // The contents of this file are subject to the Mozilla Public License
 // Version 1.1 (the "License"); you may not use this file except in
 // compliance with the License. You may obtain a copy of the License at
 // http://www.mozilla.org/MPL/
-// 
+//
 // This software is distributed on an "AS IS" basis, WITHOUT WARRANTY
 // OF ANY KIND, either express or implied. See the LGPL or the MPL for
 // the specific language governing rights and limitations.
-// 
+//
 // The Original Code is the cairo graphics library.
-// 
+//
 // The Initial Developer of the Original Code is University of Southern
 // California.
-// 
+//
 // Contributor(s):
 // 	Carl D. Worth <cworth@cworth.org>
 
@@ -49,8 +49,8 @@ import (
 	"image/draw"
 	"math"
 	"unsafe"
-	"view/extimage"
 	"view/color"
+	"view/extimage"
 )
 
 // Surface holds the cairo surface and a cairo context
@@ -58,7 +58,6 @@ type Surface struct {
 	surface *C.cairo_surface_t
 	context *C.cairo_t
 }
-
 
 func (self *Surface) Destroy() {
 	C.cairo_surface_destroy(self.surface)
@@ -260,7 +259,7 @@ func (self *Surface) NewPath() {
 }
 
 func (self *Surface) MoveTo(x, y float64) {
-	C.cairo_move_to(self.context, C.double(x), C.double(y))
+	C.cairo_move_to(self.context, C.double(x+0.5), C.double(y+0.5))
 }
 
 func (self *Surface) NewSubPath() {
@@ -268,53 +267,55 @@ func (self *Surface) NewSubPath() {
 }
 
 func (self *Surface) LineTo(x, y float64) {
-	C.cairo_line_to(self.context, C.double(x), C.double(y))
+	C.cairo_line_to(self.context, C.double(x+0.5), C.double(y+0.5))
 }
 
 func (self *Surface) CurveTo(x1, y1, x2, y2, x3, y3 float64) {
 	C.cairo_curve_to(self.context,
-		C.double(x1), C.double(y1),
-		C.double(x2), C.double(y2),
-		C.double(x3), C.double(y3))
+		C.double(x1+0.5), C.double(y1+0.5),
+		C.double(x2+0.5), C.double(y2+0.5),
+		C.double(x3+0.5), C.double(y3+0.5))
 }
 
 func (self *Surface) Arc(xc, yc, radius, angle1, angle2 float64) {
 	C.cairo_arc(self.context,
-		C.double(xc), C.double(yc),
+		C.double(xc+0.5), C.double(yc+0.5),
 		C.double(radius),
 		C.double(angle1), C.double(angle2))
 }
 
 func (self *Surface) ArcNegative(xc, yc, radius, angle1, angle2 float64) {
 	C.cairo_arc_negative(self.context,
-		C.double(xc), C.double(yc),
+		C.double(xc+0.5), C.double(yc+0.5),
 		C.double(radius),
 		C.double(angle1), C.double(angle2))
 }
 
 func (self *Surface) RelMoveTo(dx, dy float64) {
-	C.cairo_rel_move_to(self.context, C.double(dx), C.double(dy))
+	C.cairo_rel_move_to(self.context, C.double(dx+0.5), C.double(dy+0.5))
 }
 
 func (self *Surface) RelLineTo(dx, dy float64) {
-	C.cairo_rel_line_to(self.context, C.double(dx), C.double(dy))
+	C.cairo_rel_line_to(self.context, C.double(dx+0.5), C.double(dy+0.5))
 }
 
 func (self *Surface) RelCurveTo(dx1, dy1, dx2, dy2, dx3, dy3 float64) {
 	C.cairo_rel_curve_to(self.context,
-		C.double(dx1), C.double(dy1),
-		C.double(dx2), C.double(dy2),
-		C.double(dx3), C.double(dy3))
+		C.double(dx1+0.5), C.double(dy1+0.5),
+		C.double(dx2+0.5), C.double(dy2+0.5),
+		C.double(dx3+0.5), C.double(dy3+0.5))
 }
 
 func (self *Surface) Rectangle(x, y, width, height float64) {
 	C.cairo_rectangle(self.context,
-		C.double(x), C.double(y),
+		C.double(x+0.5), C.double(y+0.5),
 		C.double(width), C.double(height))
 }
 
 func (self *Surface) RoundedRectangle(x, y, width, height, radiusUL, radiusUR, radiusLR, radiusLL float64) {
 	degrees := math.Pi / 180.0
+	x += 0.5
+	y += 0.5
 	self.NewSubPath()
 	self.Arc(x+radiusUL, y+radiusUL, radiusUL, 180*degrees, 270*degrees)
 	self.Arc(x+width-radiusUR, y+radiusUR, radiusUR, -90*degrees, 0*degrees)
@@ -385,11 +386,11 @@ func (self *Surface) ShowPage() {
 // Insideness testing
 
 func (self *Surface) InStroke(x, y float64) bool {
-	return C.cairo_in_stroke(self.context, C.double(x), C.double(y)) != 0
+	return C.cairo_in_stroke(self.context, C.double(x+0.5), C.double(y+0.5)) != 0
 }
 
 func (self *Surface) InFill(x, y float64) bool {
-	return C.cairo_in_fill(self.context, C.double(x), C.double(y)) != 0
+	return C.cairo_in_fill(self.context, C.double(x+0.5), C.double(y+0.5)) != 0
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -535,52 +536,54 @@ func (self *Surface) TextExtents(text string) *TextExtents {
 //	return nil
 //}
 
-// DrawRune draws unicode characters at the given position 
-// in the font currently configured. Currently, it only 
+// DrawRune draws unicode characters at the given position
+// in the font currently configured. Currently, it only
 // supports Latin characters.
-func (self *Surface) DrawRune(r rune, x, y float64) { 
-  var delta rune = 29
-  
-  // TODO - The runes do not map directly to glyphs.
-  //        The various ranges of printable unicode 
-  //        characters need to be mapped properly 
-  //        such that the correct characters are 
-  //        displayed.  Or, a better solution found.
-  // 
-  //        We currently support 0x0000 - 0x02AF
-  if r > '~' {
-  	delta = 62
-  } 
-  
-  var glyph []C.cairo_glyph_t = []C.cairo_glyph_t{C.cairo_glyph_t{C.ulong(r - delta), C.double(x), C.double(y)}}
-  C.cairo_show_glyphs(self.context, &glyph[0], 1)
+func (self *Surface) DrawRune(r rune, x, y float64) {
+	var delta rune = 29
+	x += 0.5
+	y += 0.5
+	// TODO - The runes do not map directly to glyphs.
+	//        The various ranges of printable unicode
+	//        characters need to be mapped properly
+	//        such that the correct characters are
+	//        displayed.  Or, a better solution found.
+	//
+	//        We currently support 0x0000 - 0x02AF
+	if r > '~' {
+		delta = 62
+	}
+
+	var glyph []C.cairo_glyph_t = []C.cairo_glyph_t{C.cairo_glyph_t{C.ulong(r - delta), C.double(x), C.double(y)}}
+	C.cairo_show_glyphs(self.context, &glyph[0], 1)
 }
 
-func (self *Surface) DrawFontGlyphs() {    
-  self.SelectFontFace("Monospace", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)	
-//  C.cairo_select_font_face(self.context, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
-  C.cairo_set_font_size(self.context, 16)
+func (self *Surface) DrawFontGlyphs() {
+	self.SelectFontFace("Monospace", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
+	//  C.cairo_select_font_face(self.context, "Serif", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+	C.cairo_set_font_size(self.context, 16)
 
-  var n_glyphs C.int = 40 * 35
-  var glyphs []C.cairo_glyph_t = make([]C.cairo_glyph_t, n_glyphs, n_glyphs)
+	var n_glyphs C.int = 40 * 35
+	var glyphs []C.cairo_glyph_t = make([]C.cairo_glyph_t, n_glyphs, n_glyphs)
 
-  var i C.ulong = 0  
-  var x C.double
-  var y C.double
-  
-  for y = 0; y < 40; y++ {
-      for x = 0; x < 35; x++ {
-      	  var g C.cairo_glyph_t
-      	  g.index = i
-      	  g.x = x * 15 + 20
-      	  g.y = y * 18 + 20
-          glyphs[i] = g
-          i++
-      }
-  }
-  
-  C.cairo_show_glyphs(self.context, &glyphs[0], n_glyphs)
+	var i C.ulong = 0
+	var x C.double
+	var y C.double
+
+	for y = 0; y < 40; y++ {
+		for x = 0; x < 35; x++ {
+			var g C.cairo_glyph_t
+			g.index = i
+			g.x = x*15 + 20.5
+			g.y = y*18 + 20.5
+			glyphs[i] = g
+			i++
+		}
+	}
+
+	C.cairo_show_glyphs(self.context, &glyphs[0], n_glyphs)
 }
+
 ///////////////////////////////////////////////////////////////////////////////
 // Error status queries
 

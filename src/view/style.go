@@ -11,7 +11,7 @@ import (
 )
 
 type OverflowXStrategy int
- 
+
 const (
 	STYLE_OVERFLOW_X_NONE OverflowXStrategy = iota
 	STYLE_OVERFLOW_X_SCROLL
@@ -35,6 +35,7 @@ const (
 )
 
 var defaultFontOptions *FontOptions
+
 func init() {
 	defaultFontOptions = NewFontOptions()
 	defaultFontOptions.SetAntialias(ANTIALIAS_SUBPIXEL)
@@ -93,6 +94,7 @@ type Style interface {
 	RadiusTopRight() float64
 	RadiusBottomLeft() float64
 	RadiusBottomRight() float64
+	Padding() (l, r, t, b float64)
 	PaddingTop() float64
 	PaddingBottom() float64
 	PaddingLeft() float64
@@ -103,33 +105,33 @@ type Style interface {
 }
 
 type defaultStyle struct {
-	antialias           bool
-	fontName            string
-	fontWeight          int
-	fontSlant           int
-	fontSize            float64
-	tabWidth            int
-	backgroundColor     color.RGBA
-	foregroundColor     color.RGBA
-	borderColorTop      color.RGBA
-	borderColorBottom   color.RGBA
-	borderColorLeft     color.RGBA
-	borderColorRight    color.RGBA
-	borderWidthTop      float64
-	borderWidthBottom   float64
-	borderWidthLeft     float64
-	borderWidthRight    float64
-	radiusTL			float64
-	radiusTR			float64
-	radiusBR			float64
-	radiusBL			float64
-	paddingTop          float64
-	paddingBottom       float64
-	paddingLeft         float64
-	paddingRight        float64
-	overflowX           OverflowXStrategy
-	overflowY           OverflowYStrategy
-	textAlignment       TextAlignment
+	antialias         bool
+	fontName          string
+	fontWeight        int
+	fontSlant         int
+	fontSize          float64
+	tabWidth          int
+	backgroundColor   color.RGBA
+	foregroundColor   color.RGBA
+	borderColorTop    color.RGBA
+	borderColorBottom color.RGBA
+	borderColorLeft   color.RGBA
+	borderColorRight  color.RGBA
+	borderWidthTop    float64
+	borderWidthBottom float64
+	borderWidthLeft   float64
+	borderWidthRight  float64
+	radiusTL          float64
+	radiusTR          float64
+	radiusBR          float64
+	radiusBL          float64
+	paddingTop        float64
+	paddingBottom     float64
+	paddingLeft       float64
+	paddingRight      float64
+	overflowX         OverflowXStrategy
+	overflowY         OverflowYStrategy
+	textAlignment     TextAlignment
 }
 
 func NewStyle() Style {
@@ -218,22 +220,22 @@ func (self *defaultStyle) SetRadiusTopRight(radius float64)      { self.radiusTR
 func (self *defaultStyle) SetRadiusBottomLeft(radius float64)    { self.radiusBL = radius }
 func (self *defaultStyle) SetRadiusBottomRight(radius float64)   { self.radiusBR = radius }
 
-func (self *defaultStyle) SetRadius(radius float64) { 
+func (self *defaultStyle) SetRadius(radius float64) {
 	self.radiusTL = radius
 	self.radiusTR = radius
 	self.radiusBL = radius
-	self.radiusBR = radius 
+	self.radiusBR = radius
 }
 
-func (self *defaultStyle) SetTextAlignment(alignment TextAlignment) { 
-	self.textAlignment = alignment 
+func (self *defaultStyle) SetTextAlignment(alignment TextAlignment) {
+	self.textAlignment = alignment
 }
 
 func (self *defaultStyle) SetBorderColor(color color.RGBA) {
-	self.borderColorTop    = color
+	self.borderColorTop = color
 	self.borderColorBottom = color
-	self.borderColorLeft   = color
-	self.borderColorRight  = color
+	self.borderColorLeft = color
+	self.borderColorRight = color
 }
 
 func (self *defaultStyle) SetBorderWidth(width float64) {
@@ -273,18 +275,22 @@ func (self *defaultStyle) BorderWidthTop() float64       { return self.borderWid
 func (self *defaultStyle) BorderWidthBottom() float64    { return self.borderWidthBottom }
 func (self *defaultStyle) BorderWidthLeft() float64      { return self.borderWidthLeft }
 func (self *defaultStyle) BorderWidthRight() float64     { return self.borderWidthRight }
-func (self *defaultStyle) PaddingTop() float64           { return self.paddingTop }
-func (self *defaultStyle) PaddingBottom() float64        { return self.paddingBottom }
-func (self *defaultStyle) PaddingLeft() float64          { return self.paddingLeft }
-func (self *defaultStyle) PaddingRight() float64         { return self.paddingRight }
-func (self *defaultStyle) OverflowX() OverflowXStrategy  { return self.overflowX }
-func (self *defaultStyle) OverflowY() OverflowYStrategy  { return self.overflowY }
-func (self *defaultStyle) RadiusTopLeft() float64        { return self.radiusTL}
-func (self *defaultStyle) RadiusTopRight() float64       { return self.radiusTR}
-func (self *defaultStyle) RadiusBottomLeft() float64     { return self.radiusBL}
-func (self *defaultStyle) RadiusBottomRight() float64    { return self.radiusBR}
 
-func (self *defaultStyle) TextAlignment() TextAlignment { 
-	return self.textAlignment 
+func (self *defaultStyle) Padding() (l, r, t, b float64) {
+	return self.paddingLeft, self.paddingRight, self.paddingTop, self.paddingBottom
 }
 
+func (self *defaultStyle) PaddingTop() float64          { return self.paddingTop }
+func (self *defaultStyle) PaddingBottom() float64       { return self.paddingBottom }
+func (self *defaultStyle) PaddingLeft() float64         { return self.paddingLeft }
+func (self *defaultStyle) PaddingRight() float64        { return self.paddingRight }
+func (self *defaultStyle) OverflowX() OverflowXStrategy { return self.overflowX }
+func (self *defaultStyle) OverflowY() OverflowYStrategy { return self.overflowY }
+func (self *defaultStyle) RadiusTopLeft() float64       { return self.radiusTL }
+func (self *defaultStyle) RadiusTopRight() float64      { return self.radiusTR }
+func (self *defaultStyle) RadiusBottomLeft() float64    { return self.radiusBL }
+func (self *defaultStyle) RadiusBottomRight() float64   { return self.radiusBR }
+
+func (self *defaultStyle) TextAlignment() TextAlignment {
+	return self.textAlignment
+}

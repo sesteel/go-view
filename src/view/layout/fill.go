@@ -11,7 +11,7 @@ import (
 )
 
 // Fill is a simple layout that expands a single
-// child to the size allotted to the layout by 
+// child to the size allotted to the layout by
 // the target.
 type Fill struct {
 	target view.View
@@ -29,7 +29,7 @@ func (self *Fill) SetChild(d view.View) {
 }
 
 func (self *Fill) Child() view.View {
-	return self.child 
+	return self.child
 }
 
 func (self *Fill) Draw(surface *view.Surface) {
