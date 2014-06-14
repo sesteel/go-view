@@ -16,11 +16,8 @@ type Selection struct {
 }
 
 func (self *Editor) addTextSelectionBehavior() {
-
-	// dragging := false
 	sel := &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
 
-	// Complex mouse behaviors
 	self.AddMouseButtonPressHandler(func(ev event.Mouse) {
 		switch ev.Button {
 		case event.MOUSE_BUTTON_LEFT:
@@ -40,8 +37,8 @@ func (self *Editor) addTextSelectionBehavior() {
 		case event.MOUSE_BUTTON_LEFT:
 			if sel.Start.Line > -1 {
 				idx := self.FindClosestIndex(ev.X, ev.Y)
-				l, c := idx.Line, idx.Column
-				if l >= 0 && c >= 0 {
+				l, _ := idx.Line, idx.Column
+				if l >= 0 {
 					sel = &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
 				}
 			}
@@ -54,9 +51,11 @@ func (self *Editor) addTextSelectionBehavior() {
 			idx := self.FindClosestIndex(ev.X, ev.Y)
 			if idx.Line >= 0 && idx.Column >= 0 && sel.Start.Line == -1 {
 				sel.Start = idx
+				sel.End.Column = idx.Column + 1
 				self.Selections = append(self.Selections, sel)
 			} else if idx.Line >= 0 && idx.Column >= 0 && sel.Start.Line > -1 {
 				sel.End = idx
+				sel.End.Column = idx.Column - 1
 				self.MoveCursor(float64(ev.X), float64(ev.Y))
 			}
 			self.Redraw()

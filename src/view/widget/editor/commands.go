@@ -6,7 +6,7 @@
 package editor
 
 import (
-	"fmt"
+	// "fmt"
 	"view/tokenizer"
 )
 
@@ -18,56 +18,8 @@ func (self *Editor) ClearSelections() {
 	self.Selections = make([]*Selection, 0)
 }
 
-// // FindCharPos returns the char position if present at (x, y),
-// // otherwise it returns (-1, -1).
-// func (self *Editor) FindCharPos(x, y float64) (line, col int) {
-// 	// position the first cursor
-// 	for l := 0; l < len(self.Lines); l++ {
-// 		// get the last char for sampling
-// 		linelen := len(self.Lines[l])
-// 		last := self.Lines[l][linelen-1]
-
-// 		if y >= last.Bounds.Y && y <= last.Bounds.Y+last.Bounds.Height {
-// 			if x >= last.Bounds.X+last.Bounds.Width {
-// 				return -1, -1
-// 			}
-
-// 			for c := 0; c < linelen; c++ {
-// 				char := self.Lines[l][c]
-// 				if char.Bounds.Contains(x, y) {
-// 					return l, c
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return -1, -1
-// }
-
-// func (self *Editor) FindClosestCharPos(x, y float64) (line, col int) {
-// 	for l := 0; l < len(self.Lines); l++ {
-// 		// get the last char for sampling
-// 		linelen := len(self.Lines[l])
-// 		last := self.Lines[l][linelen-1]
-
-// 		if y >= last.Bounds.Y && y <= last.Bounds.Y+last.Bounds.Height {
-// 			if x >= last.Bounds.X+last.Bounds.Width {
-// 				return l, linelen - 1
-// 			}
-
-// 			for c := 0; c < linelen; c++ {
-// 				char := self.Lines[l][c]
-// 				if char.Bounds.Contains(x, y) {
-// 					return l, c
-// 				}
-// 			}
-// 		}
-// 	}
-// 	return -1, -1
-// }
-
 func (self *Editor) MoveCursor(x, y float64) {
 	idx := self.FindClosestIndex(x, y)
-	fmt.Println(idx)
 	if idx.Line > -1 {
 		self.Cursors[0].Line = idx.Line
 		self.Cursors[0].Column = idx.Column
