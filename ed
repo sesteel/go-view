@@ -1,5 +1,5 @@
 #!/bin/bash
 
 GOPATH=~/git/go-view/
-#go build ./...
+go build ./...
 go run src/view/example/editor/main.go

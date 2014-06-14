@@ -7,7 +7,7 @@ package event
 
 import ()
 
-type MouseButton int
+type MouseButton int8
 
 const (
 	MOUSE_BUTTON_NONE MouseButton = iota
@@ -16,9 +16,22 @@ const (
 	MOUSE_BUTTON_RIGHT
 )
 
+var mouse MouseState
+
+func LastMouseState() MouseState {
+	return mouse
+}
+
+type MouseState struct {
+	LeftPressed   bool
+	MiddlePressed bool
+	RightPressed  bool
+	X, Y          float64
+}
+
 type Mouse struct {
 	Button MouseButton
-	X, Y   int
+	MouseState
 }
 
 type MouseNotifier interface {
@@ -62,6 +75,7 @@ func (self *MouseEventDispatcher) RemoveMouseEnterHandler(f func(Mouse)) {
 }
 
 func (self *MouseEventDispatcher) MouseEnter(me Mouse) {
+	mouse = me.MouseState
 	for i := 0; i < len(self.mouseEnterHandlers); i++ {
 		self.mouseEnterHandlers[i](me)
 	}
@@ -78,6 +92,7 @@ func (self *MouseEventDispatcher) RemoveMouseExitHandler(f func(Mouse)) {
 }
 
 func (self *MouseEventDispatcher) MouseExit(me Mouse) {
+	mouse = me.MouseState
 	for i := 0; i < len(self.mouseExitHandlers); i++ {
 		self.mouseExitHandlers[i](me)
 	}
@@ -94,6 +109,7 @@ func (self *MouseEventDispatcher) RemoveMousePositionHandler(f func(Mouse)) {
 }
 
 func (self *MouseEventDispatcher) MousePosition(me Mouse) {
+	mouse = me.MouseState
 	for i := 0; i < len(self.mousePositionHandlers); i++ {
 		self.mousePositionHandlers[i](me)
 	}
@@ -110,6 +126,7 @@ func (self *MouseEventDispatcher) RemoveMouseWheelUpHandler(f func(Mouse)) {
 }
 
 func (self *MouseEventDispatcher) MouseWheelUp(me Mouse) {
+	mouse = me.MouseState
 	for i := 0; i < len(self.mouseWheelUpHandlers); i++ {
 		self.mouseWheelUpHandlers[i](me)
 	}
@@ -126,6 +143,7 @@ func (self *MouseEventDispatcher) RemoveMouseWheelDownHandler(f func(Mouse)) {
 }
 
 func (self *MouseEventDispatcher) MouseWheelDown(me Mouse) {
+	mouse = me.MouseState
 	for i := 0; i < len(self.mouseWheelDownHandlers); i++ {
 		self.mouseWheelDownHandlers[i](me)
 	}
@@ -142,6 +160,7 @@ func (self *MouseEventDispatcher) RemoveMouseButtonReleaseHandler(f func(Mouse))
 }
 
 func (self *MouseEventDispatcher) MouseButtonRelease(me Mouse) {
+	mouse = me.MouseState
 	for i := 0; i < len(self.mouseButtonReleaseHandlers); i++ {
 		self.mouseButtonReleaseHandlers[i](me)
 	}
@@ -158,6 +177,7 @@ func (self *MouseEventDispatcher) RemoveMouseButtonPressHandler(f func(Mouse)) {
 }
 
 func (self *MouseEventDispatcher) MouseButtonPress(me Mouse) {
+	mouse = me.MouseState
 	for i := 0; i < len(self.mouseButtonPressHandlers); i++ {
 		self.mouseButtonPressHandlers[i](me)
 	}

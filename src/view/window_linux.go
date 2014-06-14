@@ -27,8 +27,8 @@ import (
 	"runtime"
 	"time"
 	"unsafe"
-	"view/event"
 	"view/color"
+	"view/event"
 )
 
 func init() {
@@ -42,6 +42,8 @@ type Window struct {
 	xwindow     C.Window
 	drawCounter uint
 	eventLoop   func()
+	drawloop    func()
+	dirty       bool
 }
 
 func (self *Window) Parent() View {
@@ -50,6 +52,7 @@ func (self *Window) Parent() View {
 
 func (self *Window) Start() {
 	go self.eventLoop()
+	go self.drawloop()
 }
 
 func (self *Window) SetLayout(layout Layout) {
@@ -82,44 +85,30 @@ func (self *Window) SetSize(width, height float64) {
 
 func (self *Window) Draw(surface *Surface) {
 	//	surface.SetSourceRGBA(self.Style().Background())
-//	_, h := self.Size()
-//	p := NewLinearPattern(0, 0, 0, h)
-//	defer p.Destroy()
-//	p.AddColorStop(0, color.Gray3)
-//	p.AddColorStop(1, color.Gray5)
-//	surface.SetSource(p)
+	//	_, h := self.Size()
+	//	p := NewLinearPattern(0, 0, 0, h)
+	//	defer p.Destroy()
+	//	p.AddColorStop(0, color.Gray3)
+	//	p.AddColorStop(1, color.Gray5)
+	//	surface.SetSource(p)
 	surface.SetSourceRGBA(color.Gray3)
 	surface.Paint()
-	
+
 	// tiled alpha background
-//	tile := NewSurfaceFromPNG("res/textures/concrete.png")
-//	defer tile.Destroy()
-//	pattern1 := C.cairo_pattern_create_for_surface(tile.surface)
-//	C.cairo_set_source(surface.context, pattern1)
-//  	C.cairo_pattern_set_extend(C.cairo_get_source(surface.context), C.cairo_extend_t(EXTEND_REPEAT))
-//	surface.Paint()
-	
+	//	tile := NewSurfaceFromPNG("res/textures/concrete.png")
+	//	defer tile.Destroy()
+	//	pattern1 := C.cairo_pattern_create_for_surface(tile.surface)
+	//	C.cairo_set_source(surface.context, pattern1)
+	//  	C.cairo_pattern_set_extend(C.cairo_get_source(surface.context), C.cairo_extend_t(EXTEND_REPEAT))
+	//	surface.Paint()
+
 	if self.layout != nil {
 		self.layout.Draw(surface)
 	}
 }
 
 func (self *Window) Redraw() {
-	var before time.Time
-	if DEBUG_DRAW_ALL {
-		before = time.Now()
-	}
-
-	s := NewSurface(FORMAT_ARGB32, int(self.width), int(self.height))
-	defer s.Destroy()
-	self.Draw(s)
-	self.surface.SetSourceSurface(s, 0, 0)
-	self.surface.Paint()
-	C.XFlush(self.display)
-	
-	if DEBUG_DRAW_ALL {
-		fmt.Println("Draw Window:", time.Since(before))
-	}
+	self.dirty = true
 }
 
 func NewWindow(name string, x, y, w, h uint) *Window {
@@ -218,6 +207,11 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	window.Redraw()
 
 	eventLoop := func() {
+
+		left := false
+		middle := false
+		right := false
+
 		/* as each event that we asked about occurs, we respond.  In this
 		 * case we note if the window's shape changed, and exit if a button
 		 * is pressed inside the window */
@@ -244,40 +238,51 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 			case C.MotionNotify:
 				evt := (*C.XMotionEvent)(unsafe.Pointer(&ev[0]))
-				window.MousePosition(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				window.MousePosition(event.Mouse{event.MOUSE_BUTTON_NONE, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 
 			case C.EnterNotify:
 				evt := (*C.XCrossingEvent)(unsafe.Pointer(&ev[0]))
-				window.MouseEnter(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				window.MouseEnter(event.Mouse{event.MOUSE_BUTTON_NONE, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 
 			case C.LeaveNotify:
 				evt := (*C.XCrossingEvent)(unsafe.Pointer(&ev[0]))
-				window.MouseExit(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+				window.MouseExit(event.Mouse{event.MOUSE_BUTTON_NONE, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 
 			case C.ButtonPress:
 				evt := (*C.XButtonEvent)(unsafe.Pointer(&ev[0]))
+
 				switch evt.button {
 				case 1:
-					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
+					left = true
+					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_LEFT, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
+
 				case 2:
-					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
+					middle = true
+					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_MIDDLE, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
+
 				case 3:
-					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
+					right = true
+					window.MouseButtonPress(event.Mouse{event.MOUSE_BUTTON_RIGHT, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
+
 				case 4:
-					window.MouseWheelUp(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+					window.MouseWheelUp(event.Mouse{event.MOUSE_BUTTON_NONE, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
+
 				case 5:
-					window.MouseWheelDown(event.Mouse{event.MOUSE_BUTTON_NONE, int(evt.x), int(evt.y)})
+					window.MouseWheelDown(event.Mouse{event.MOUSE_BUTTON_NONE, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 				}
 
 			case C.ButtonRelease:
 				evt := (*C.XButtonEvent)(unsafe.Pointer(&ev[0]))
 				switch evt.button {
 				case 1:
-					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_LEFT, int(evt.x), int(evt.y)})
+					left = false
+					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_LEFT, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 				case 2:
-					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_MIDDLE, int(evt.x), int(evt.y)})
+					middle = false
+					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_MIDDLE, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 				case 3:
-					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_RIGHT, int(evt.x), int(evt.y)})
+					right = false
+					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_RIGHT, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 				}
 			case C.KeyPress:
 				evt := (*C.XKeyEvent)(unsafe.Pointer(&ev[0]))
@@ -286,8 +291,8 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				defer C.XFree(unsafe.Pointer(&keysym))
 				symbol := uint(*keysym)
 				event.DispatchKeyPress(keymap[symbol])
-//				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
-			
+				//				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
+
 			case C.KeyRelease:
 				evt := (*C.XKeyEvent)(unsafe.Pointer(&ev[0]))
 				var keysyms_per_keycode_return C.int
@@ -295,7 +300,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				defer C.XFree(unsafe.Pointer(&keysym))
 				symbol := uint(*keysym)
 				event.DispatchKeyRelease(keymap[symbol])
-//				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
+				//				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
 
 			default:
 				C.XFlush(dpy)
@@ -303,6 +308,31 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 		}
 	}
 	window.eventLoop = eventLoop
+
+	drawloop := func() {
+		for {
+			if window.dirty {
+				window.dirty = false
+				var before time.Time
+				if DEBUG_DRAW_ALL {
+					before = time.Now()
+				}
+
+				s := NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
+				window.Draw(s)
+				window.surface.SetSourceSurface(s, 0, 0)
+				window.surface.Paint()
+				C.XFlush(window.display)
+
+				if DEBUG_DRAW_ALL {
+					fmt.Println("Draw Window>:", time.Since(before))
+				}
+				s.Destroy()
+			}
+			time.Sleep(time.Millisecond * 30)
+		}
+	}
+	window.drawloop = drawloop
 
 	return window
 }

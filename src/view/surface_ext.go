@@ -1,9 +1,14 @@
+// This Source Code Form is subject to the terms of the Mozilla Public
+// License, v. 2.0. If a copy of the MPL was not distributed with this
+// file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+// Copyright (c) 2014 Stanley Steel
 package view
 
 import (
-	. "view/common"
 	"fmt"
 	"view/color"
+	. "view/common"
 	"view/tokenizer"
 )
 
@@ -145,5 +150,3 @@ func (self *Surface) DrawHorizontalOverflow(boundsWidth float64, s Style) {
 	self.RoundedRectangle(float64(self.Height())-10, 50, 10, float64(self.Width())*ratio, 2, 2, 2, 2)
 	self.Fill()
 }
-
-

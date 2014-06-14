@@ -26,10 +26,41 @@ type Keyboard struct {
 	NumLock      bool
 }
 
-func (self *Keyboard) Ctrl() bool    { return self.LeftCtrl || self.RightCtrl }
-func (self *Keyboard) Alt() bool     { return self.LeftAlt || self.RightAlt }
-func (self *Keyboard) Shift() bool   { return self.LeftShift || self.RightShift }
-func (self *Keyboard) Command() bool { return self.LeftCommand || self.RightCommand }
+func LastKeyboardState() Keyboard {
+	return keyboard
+}
+
+func (self *Keyboard) Ctrl() bool {
+	return self.LeftCtrl || self.RightCtrl
+}
+
+func (self *Keyboard) CtrlOnly() bool {
+	return self.Ctrl() && !(self.Alt() || self.Shift() || self.Command())
+}
+
+func (self *Keyboard) Alt() bool {
+	return self.LeftAlt || self.RightAlt
+}
+
+func (self *Keyboard) AltOnly() bool {
+	return self.Alt() && !(self.Ctrl() || self.Shift() || self.Command())
+}
+
+func (self *Keyboard) Shift() bool {
+	return self.LeftShift || self.RightShift
+}
+
+func (self *Keyboard) ShiftOnly() bool {
+	return self.Shift() && !(self.Ctrl() || self.Alt() || self.Command())
+}
+
+func (self *Keyboard) Command() bool {
+	return self.LeftCommand || self.RightCommand
+}
+
+func (self *Keyboard) CommandOnly() bool {
+	return self.Command() && !(self.Ctrl() || self.Alt() || self.Shift())
+}
 
 func (self *Keyboard) toggleModifiersOn(key Key) {
 	switch key {
@@ -81,21 +112,20 @@ func (self *Keyboard) toggleModifiersOff(key Key) {
 	}
 }
 
-
 func (self Keyboard) Rune() rune {
 	rm := runeMap[self.Value]
 	if rm == nil {
 		return rune(0)
 	}
-	
+
 	if self.Caps {
 		if self.Shift() && !self.Value.NumberKey() {
 			return rm.a
 		} else {
 			return rm.b
 		}
-	} 
-	
+	}
+
 	if self.Shift() {
 		return rm.b
 	} else {
@@ -167,7 +197,6 @@ func DispatchKeyPress(key Key) {
 	} else if kh, ok := focussedElement.(EventDispatcher); ok {
 		kh.KeyPress(keyboard)
 	}
-	keyboard.Value = NONE
 }
 
 func DispatchKeyRelease(key Key) {
@@ -184,4 +213,3 @@ func DispatchKeyRelease(key Key) {
 	}
 	keyboard.Value = NONE
 }
-

@@ -10,7 +10,7 @@ import (
 	"view"
 	"view/color"
 	. "view/common"
-	"view/event"
+	// "view/event"
 	"view/tokenizer"
 	"view/tokenizer/plaintext"
 )
@@ -25,23 +25,17 @@ type TokenStyle struct {
 // Lines is an alias to hold lines of characters.
 type Lines [][]tokenizer.Character
 
-// Cursor is used to store the position of the cursor via line and column.
-type Cursor struct {
+// Index represents a character position in the Lines data structure.
+type Index struct {
 	Line   int
 	Column int
 }
 
-// Selection represents a character range where text has been
-// selected; commonly used for copy and cutting operations.
-type Selection struct {
-	StartLine   int
-	StartColumn int
-	EndLine     int
-	EndColumn   int
-}
+// Cursor is used to store the position of the cursor via a Index.
+type Cursor Index
 
 // Error represent a range of characters where an error has occurred.
-type Error Selection
+type Error Range
 
 // Editor is a simple widget by which one can enter and edit text.
 type Editor struct {
@@ -65,8 +59,8 @@ type Editor struct {
 	TabWidth        int
 	LineSpace       float64
 	Cursors         []Cursor
-	Selections      []Selection
-	Errors          []Error
+	Selections      []*Selection
+	Errors          []*Error
 }
 
 // New creates and returns a simple Editor object with its defaults set.
@@ -98,17 +92,11 @@ func New(parent view.View, name string, text string) *Editor {
 		4,
 		1.7,
 		[]Cursor{Cursor{0, 0}},
-		[]Selection{},
-		[]Error{},
+		make([]*Selection, 0),
+		make([]*Error, 0),
 	}
 	e.addKeyboardHandler()
-	e.AddMouseButtonPressHandler(func(ev event.Mouse) {
-		switch ev.Button {
-		case event.MOUSE_BUTTON_LEFT:
-			e.MoveCursor(float64(ev.X), float64(ev.Y))
-			e.Redraw()
-		}
-	})
+	e.addTextSelectionBehavior()
 	e.Style().SetPadding(10)
 	e.Style().SetRadius(0)
 	e.Style().SetForeground(color.Gray13)
@@ -174,6 +162,7 @@ func (self *Editor) drawBody(s *view.Surface) {
 	var tokenClass tokenizer.TokenClass
 	var tokenStyle *TokenStyle
 	defaultStyle := &TokenStyle{style.FontWeight(), style.FontSlant(), style.Foreground()}
+
 	for l := 0; l < len(self.Lines); l++ {
 		line := self.Lines[l]
 		for col := 0; col < len(line); col++ {
@@ -183,6 +172,16 @@ func (self *Editor) drawBody(s *view.Surface) {
 			// character height to change coord space.
 			c.Bounds = b
 			c.Bounds.Y -= ce.Height
+
+			// Draw Text Selection if Present
+			if self.posInSelection(l, col) {
+				s.Save()
+				s.SetSourceRGBA(color.Gray4)
+				s.Rectangle(b.X, b.Y-c.Bounds.Height-2, c.Bounds.Width+2, c.Bounds.Height+8)
+				s.Fill()
+				// s.Flush()
+				s.Restore()
+			}
 
 			//fmt.Println(b)
 			if c.Token.Type == tokenizer.NEWLINE {
@@ -229,6 +228,7 @@ func (self *Editor) drawBody(s *view.Surface) {
 					}
 				}
 				updatePos()
+
 				s.DrawRune(c.Rune, b.X, b.Y)
 				//ex := s.TextExtents(string(c.Rune))
 				b.X += ce.Xadvance
@@ -237,12 +237,30 @@ func (self *Editor) drawBody(s *view.Surface) {
 	}
 }
 
+func (self *Editor) posInSelection(l, c int) bool {
+	if len(self.Selections) > 0 {
+		for i := 0; i < len(self.Selections); i++ {
+
+			s := *self.Selections[i]
+			s.Normalize()
+			if l > s.Start.Line && l < s.End.Line {
+				return true
+			} else if l == s.Start.Line && c >= s.Start.Column {
+				return true
+			} else if l == s.End.Line && c <= s.End.Column {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (self *Editor) drawCursor(s *view.Surface, x, y, w, h float64) {
 	s.Save()
 	// TODO Allow different Styles Of Cursors
 	s.SetSourceRGBA(color.Red1)
 	s.SetLineCap(view.LINE_CAP_ROUND)
-	s.SetLineWidth(3)
+	s.SetLineWidth(1)
 	s.MoveTo(x+1, y-h-2)
 	s.LineTo(x+1, y+2)
 	s.Stroke()
