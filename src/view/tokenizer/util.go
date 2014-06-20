@@ -31,7 +31,7 @@ func ToLinesOfCharacters(tkns []*Token) [][]Character {
 	for i := 0; i < len(tkns); i++ {
 		tkn := tkns[i]
 		for _, r := range tkn.Value {
-			line = append(line, Character{pos, tkn, r, Bounds{-1, -1, Size{-1, -1}}})
+			line = append(line, Character{pos, tkn, r, Bounds{Point{-1, -1}, Size{-1, -1}}})
 			pos++
 		}
 		if tkn.Value == "\n" {

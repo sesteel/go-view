@@ -6,6 +6,9 @@
 package editor
 
 import (
+	// "fmt"
+	"view"
+	"view/color"
 	"view/event"
 )
 
@@ -13,6 +16,90 @@ import (
 // selected; commonly used for copy and cutting operations.
 type Selection struct {
 	Range
+}
+
+func (self Selection) IndexInSelection(i Index) bool {
+	self.Normalize()
+	if i.Line > self.Start.Line && i.Line < self.End.Line {
+		return true
+	} else if i.Line == self.Start.Line && i.Column >= self.Start.Column {
+		return true
+	} else if i.Line == self.End.Line && i.Column <= self.End.Column {
+		return true
+	}
+	return false
+}
+
+func (self Selection) drawCharBG(s *view.Surface, lines Lines, i Index, x, y, w, h float64) {
+	w += 2
+	h += 1
+	s.Save()
+	s.SetSourceRGBA(color.Blue1)
+	s.Rectangle(x, y, w, h)
+	s.Fill()
+	self.Normalize()
+
+	// s.SetSourceRGBA(color.Blue2)
+
+	// top := func() {
+	// 	s.MoveTo(x, y)
+	// 	s.LineTo(x+w, y)
+	// }
+
+	// left := func() {
+	// 	s.MoveTo(x, y)
+	// 	s.LineTo(x, y+h)
+	// }
+
+	// bottom := func() {
+	// 	s.MoveTo(x, y+h)
+	// 	s.LineTo(x+w, y+h)
+	// }
+
+	// right := func() {
+	// 	s.MoveTo(x+w, y)
+	// 	s.LineTo(x+w, y+h)
+	// }
+
+	// if i.Column == 0 {
+	// 	left()
+	// }
+
+	// if i.Line == self.Start.Line {
+	// 	top()
+	// 	if i.Column == self.Start.Column {
+	// 		left()
+	// 	}
+	// } else {
+	// 	// fmt.Println(i)
+	// 	a := self.IndexInSelection(Index{i.Line - 1, i.Column})
+	// 	b := len(lines[i.Line]) > 0
+	// 	c := true
+	// 	if i.Line > 0 {
+	// 		c = len(lines[i.Line-1]) <= i.Column
+	// 	}
+	// 	if !a || b && c {
+	// 		top()
+	// 	}
+	// }
+
+	// if i.Line == self.End.Line {
+	// 	bottom()
+	// 	if i.Column == self.End.Column {
+	// 		right()
+	// 	}
+	// } else {
+	// 	if !self.IndexInSelection(Index{i.Line + 1, i.Column}) || len(lines[i.Line+1]) <= i.Column {
+	// 		bottom()
+	// 	}
+	// }
+
+	// if i.Column == len(lines[i.Line])-1 {
+	// 	right()
+	// }
+
+	// s.Stroke()
+	s.Restore()
 }
 
 func (self *Editor) addTextSelectionBehavior() {

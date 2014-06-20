@@ -104,7 +104,7 @@ type Style interface {
 	TextAlignment() TextAlignment
 }
 
-type defaultStyle struct {
+type DefaultStyle struct {
 	antialias         bool
 	fontName          string
 	fontWeight        int
@@ -135,7 +135,7 @@ type defaultStyle struct {
 }
 
 func NewStyle() Style {
-	s := new(defaultStyle)
+	s := new(DefaultStyle)
 	s.SetBorderWidth(1)
 	s.SetFontName("Liberation Sans")
 	s.SetFontSize(13)
@@ -164,7 +164,7 @@ func CloneAsDisabledStyle(style Style) Style {
 }
 
 func CloneStyle(style Style) Style {
-	s := new(defaultStyle)
+	s := new(DefaultStyle)
 	s.SetBorderWidthBottom(style.BorderWidthBottom())
 	s.SetBorderWidthTop(style.BorderWidthTop())
 	s.SetBorderWidthLeft(style.BorderWidthLeft())
@@ -196,101 +196,101 @@ func CloneStyle(style Style) Style {
 	return s
 }
 
-func (self *defaultStyle) SetFontName(name string)               { self.fontName = name }
-func (self *defaultStyle) SetFontWeight(weight int)              { self.fontWeight = weight }
-func (self *defaultStyle) SetFontSlant(slant int)                { self.fontSlant = slant }
-func (self *defaultStyle) SetFontSize(size float64)              { self.fontSize = size }
-func (self *defaultStyle) SetTabWidth(width int)                 { self.tabWidth = width }
-func (self *defaultStyle) SetBackground(color color.RGBA)        { self.backgroundColor = color }
-func (self *defaultStyle) SetForeground(color color.RGBA)        { self.foregroundColor = color }
-func (self *defaultStyle) SetBorderColorTop(color color.RGBA)    { self.borderColorTop = color }
-func (self *defaultStyle) SetBorderColorBottom(color color.RGBA) { self.borderColorBottom = color }
-func (self *defaultStyle) SetBorderColorLeft(color color.RGBA)   { self.borderColorLeft = color }
-func (self *defaultStyle) SetBorderColorRight(color color.RGBA)  { self.borderColorRight = color }
-func (self *defaultStyle) SetBorderWidthTop(width float64)       { self.borderWidthTop = width }
-func (self *defaultStyle) SetBorderWidthBottom(width float64)    { self.borderWidthBottom = width }
-func (self *defaultStyle) SetBorderWidthLeft(width float64)      { self.borderWidthLeft = width }
-func (self *defaultStyle) SetBorderWidthRight(width float64)     { self.borderWidthRight = width }
-func (self *defaultStyle) SetPaddingTop(padding float64)         { self.paddingTop = padding }
-func (self *defaultStyle) SetPaddingBottom(padding float64)      { self.paddingBottom = padding }
-func (self *defaultStyle) SetPaddingLeft(padding float64)        { self.paddingLeft = padding }
-func (self *defaultStyle) SetPaddingRight(padding float64)       { self.paddingRight = padding }
-func (self *defaultStyle) SetRadiusTopLeft(radius float64)       { self.radiusTL = radius }
-func (self *defaultStyle) SetRadiusTopRight(radius float64)      { self.radiusTR = radius }
-func (self *defaultStyle) SetRadiusBottomLeft(radius float64)    { self.radiusBL = radius }
-func (self *defaultStyle) SetRadiusBottomRight(radius float64)   { self.radiusBR = radius }
+func (self *DefaultStyle) SetFontName(name string)               { self.fontName = name }
+func (self *DefaultStyle) SetFontWeight(weight int)              { self.fontWeight = weight }
+func (self *DefaultStyle) SetFontSlant(slant int)                { self.fontSlant = slant }
+func (self *DefaultStyle) SetFontSize(size float64)              { self.fontSize = size }
+func (self *DefaultStyle) SetTabWidth(width int)                 { self.tabWidth = width }
+func (self *DefaultStyle) SetBackground(color color.RGBA)        { self.backgroundColor = color }
+func (self *DefaultStyle) SetForeground(color color.RGBA)        { self.foregroundColor = color }
+func (self *DefaultStyle) SetBorderColorTop(color color.RGBA)    { self.borderColorTop = color }
+func (self *DefaultStyle) SetBorderColorBottom(color color.RGBA) { self.borderColorBottom = color }
+func (self *DefaultStyle) SetBorderColorLeft(color color.RGBA)   { self.borderColorLeft = color }
+func (self *DefaultStyle) SetBorderColorRight(color color.RGBA)  { self.borderColorRight = color }
+func (self *DefaultStyle) SetBorderWidthTop(width float64)       { self.borderWidthTop = width }
+func (self *DefaultStyle) SetBorderWidthBottom(width float64)    { self.borderWidthBottom = width }
+func (self *DefaultStyle) SetBorderWidthLeft(width float64)      { self.borderWidthLeft = width }
+func (self *DefaultStyle) SetBorderWidthRight(width float64)     { self.borderWidthRight = width }
+func (self *DefaultStyle) SetPaddingTop(padding float64)         { self.paddingTop = padding }
+func (self *DefaultStyle) SetPaddingBottom(padding float64)      { self.paddingBottom = padding }
+func (self *DefaultStyle) SetPaddingLeft(padding float64)        { self.paddingLeft = padding }
+func (self *DefaultStyle) SetPaddingRight(padding float64)       { self.paddingRight = padding }
+func (self *DefaultStyle) SetRadiusTopLeft(radius float64)       { self.radiusTL = radius }
+func (self *DefaultStyle) SetRadiusTopRight(radius float64)      { self.radiusTR = radius }
+func (self *DefaultStyle) SetRadiusBottomLeft(radius float64)    { self.radiusBL = radius }
+func (self *DefaultStyle) SetRadiusBottomRight(radius float64)   { self.radiusBR = radius }
 
-func (self *defaultStyle) SetRadius(radius float64) {
+func (self *DefaultStyle) SetRadius(radius float64) {
 	self.radiusTL = radius
 	self.radiusTR = radius
 	self.radiusBL = radius
 	self.radiusBR = radius
 }
 
-func (self *defaultStyle) SetTextAlignment(alignment TextAlignment) {
+func (self *DefaultStyle) SetTextAlignment(alignment TextAlignment) {
 	self.textAlignment = alignment
 }
 
-func (self *defaultStyle) SetBorderColor(color color.RGBA) {
+func (self *DefaultStyle) SetBorderColor(color color.RGBA) {
 	self.borderColorTop = color
 	self.borderColorBottom = color
 	self.borderColorLeft = color
 	self.borderColorRight = color
 }
 
-func (self *defaultStyle) SetBorderWidth(width float64) {
+func (self *DefaultStyle) SetBorderWidth(width float64) {
 	self.borderWidthTop = width
 	self.borderWidthBottom = width
 	self.borderWidthLeft = width
 	self.borderWidthRight = width
 }
 
-func (self *defaultStyle) SetPadding(padding float64) {
+func (self *DefaultStyle) SetPadding(padding float64) {
 	self.paddingTop = padding
 	self.paddingBottom = padding
 	self.paddingLeft = padding
 	self.paddingRight = padding
 }
 
-func (self *defaultStyle) SetOverflowX(overflowX OverflowXStrategy) {
+func (self *DefaultStyle) SetOverflowX(overflowX OverflowXStrategy) {
 	self.overflowX = overflowX
 }
 
-func (self *defaultStyle) SetOverflowY(overflowY OverflowYStrategy) {
+func (self *DefaultStyle) SetOverflowY(overflowY OverflowYStrategy) {
 	self.overflowY = overflowY
 }
 
-func (self *defaultStyle) FontName() string              { return self.fontName }
-func (self *defaultStyle) FontWeight() int               { return self.fontWeight }
-func (self *defaultStyle) FontSlant() int                { return self.fontSlant }
-func (self *defaultStyle) FontSize() float64             { return self.fontSize }
-func (self *defaultStyle) TabWidth() int                 { return self.tabWidth }
-func (self *defaultStyle) Background() color.RGBA        { return self.backgroundColor }
-func (self *defaultStyle) Foreground() color.RGBA        { return self.foregroundColor }
-func (self *defaultStyle) BorderColorTop() color.RGBA    { return self.borderColorTop }
-func (self *defaultStyle) BorderColorBottom() color.RGBA { return self.borderColorBottom }
-func (self *defaultStyle) BorderColorLeft() color.RGBA   { return self.borderColorLeft }
-func (self *defaultStyle) BorderColorRight() color.RGBA  { return self.borderColorRight }
-func (self *defaultStyle) BorderWidthTop() float64       { return self.borderWidthTop }
-func (self *defaultStyle) BorderWidthBottom() float64    { return self.borderWidthBottom }
-func (self *defaultStyle) BorderWidthLeft() float64      { return self.borderWidthLeft }
-func (self *defaultStyle) BorderWidthRight() float64     { return self.borderWidthRight }
+func (self *DefaultStyle) FontName() string              { return self.fontName }
+func (self *DefaultStyle) FontWeight() int               { return self.fontWeight }
+func (self *DefaultStyle) FontSlant() int                { return self.fontSlant }
+func (self *DefaultStyle) FontSize() float64             { return self.fontSize }
+func (self *DefaultStyle) TabWidth() int                 { return self.tabWidth }
+func (self *DefaultStyle) Background() color.RGBA        { return self.backgroundColor }
+func (self *DefaultStyle) Foreground() color.RGBA        { return self.foregroundColor }
+func (self *DefaultStyle) BorderColorTop() color.RGBA    { return self.borderColorTop }
+func (self *DefaultStyle) BorderColorBottom() color.RGBA { return self.borderColorBottom }
+func (self *DefaultStyle) BorderColorLeft() color.RGBA   { return self.borderColorLeft }
+func (self *DefaultStyle) BorderColorRight() color.RGBA  { return self.borderColorRight }
+func (self *DefaultStyle) BorderWidthTop() float64       { return self.borderWidthTop }
+func (self *DefaultStyle) BorderWidthBottom() float64    { return self.borderWidthBottom }
+func (self *DefaultStyle) BorderWidthLeft() float64      { return self.borderWidthLeft }
+func (self *DefaultStyle) BorderWidthRight() float64     { return self.borderWidthRight }
 
-func (self *defaultStyle) Padding() (l, r, t, b float64) {
+func (self *DefaultStyle) Padding() (l, r, t, b float64) {
 	return self.paddingLeft, self.paddingRight, self.paddingTop, self.paddingBottom
 }
 
-func (self *defaultStyle) PaddingTop() float64          { return self.paddingTop }
-func (self *defaultStyle) PaddingBottom() float64       { return self.paddingBottom }
-func (self *defaultStyle) PaddingLeft() float64         { return self.paddingLeft }
-func (self *defaultStyle) PaddingRight() float64        { return self.paddingRight }
-func (self *defaultStyle) OverflowX() OverflowXStrategy { return self.overflowX }
-func (self *defaultStyle) OverflowY() OverflowYStrategy { return self.overflowY }
-func (self *defaultStyle) RadiusTopLeft() float64       { return self.radiusTL }
-func (self *defaultStyle) RadiusTopRight() float64      { return self.radiusTR }
-func (self *defaultStyle) RadiusBottomLeft() float64    { return self.radiusBL }
-func (self *defaultStyle) RadiusBottomRight() float64   { return self.radiusBR }
+func (self *DefaultStyle) PaddingTop() float64          { return self.paddingTop }
+func (self *DefaultStyle) PaddingBottom() float64       { return self.paddingBottom }
+func (self *DefaultStyle) PaddingLeft() float64         { return self.paddingLeft }
+func (self *DefaultStyle) PaddingRight() float64        { return self.paddingRight }
+func (self *DefaultStyle) OverflowX() OverflowXStrategy { return self.overflowX }
+func (self *DefaultStyle) OverflowY() OverflowYStrategy { return self.overflowY }
+func (self *DefaultStyle) RadiusTopLeft() float64       { return self.radiusTL }
+func (self *DefaultStyle) RadiusTopRight() float64      { return self.radiusTR }
+func (self *DefaultStyle) RadiusBottomLeft() float64    { return self.radiusBL }
+func (self *DefaultStyle) RadiusBottomRight() float64   { return self.radiusBR }
 
-func (self *defaultStyle) TextAlignment() TextAlignment {
+func (self *DefaultStyle) TextAlignment() TextAlignment {
 	return self.textAlignment
 }

@@ -37,6 +37,11 @@ type Cursor Index
 // Error represent a range of characters where an error has occurred.
 type Error Range
 
+type Map struct {
+	Width   int
+	Overlay color.RGBA
+}
+
 // Editor is a simple widget by which one can enter and edit text.
 type Editor struct {
 	view.DefaultComponent
@@ -97,7 +102,7 @@ func New(parent view.View, name string, text string) *Editor {
 	}
 	e.addKeyboardHandler()
 	e.addTextSelectionBehavior()
-	e.Style().SetPadding(10)
+	e.Style().SetPadding(0)
 	e.Style().SetRadius(0)
 	e.Style().SetForeground(color.Gray13)
 	e.Style().SetBackground(color.Gray1)
@@ -107,16 +112,40 @@ func New(parent view.View, name string, text string) *Editor {
 }
 
 func (self *Editor) Draw(s *view.Surface) {
-	// Draw Background
-	s.DrawFilledBackground(self.Style())
+	s.SetSourceRGBA(self.Style().Background())
+	s.Paint()
 
-	// Draw Map
+	mapWidth := 125
+
+	// s.Flush()
+	s2 := view.NewSurface(view.FORMAT_ARGB32, s.Width()-mapWidth-1, s.Height()*3)
+	defer s2.Destroy()
+
+	s3 := view.NewSurface(view.FORMAT_ARGB32, mapWidth, s.Height())
+	defer s3.Destroy()
+
+	s3.Scale(.3333, .3333)
+	// s3.SetSourceSurface(s2, 0, 0)
+	// s3.Paint()
 
 	// Draw Body
-	self.drawBody(s)
+	self.drawBody(s2, s3)
+	s.SetSourceSurface(s2, float64(mapWidth)+1, 0)
+	s.Paint()
+	s.Flush()
+
+	// Draw Map
+	s.SetSourceSurface(s3, 0, 0)
+	s.Paint()
+	s.SetSourceRGBA(color.Gray2)
+	s.MoveTo(float64(mapWidth)+1, 0)
+	s.SetLineWidth(1)
+	s.LineTo(float64(mapWidth)+1, float64(s.Height()))
+	s.Stroke()
+
 }
 
-func (self *Editor) drawBody(s *view.Surface) {
+func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
 	style := self.Style()
 	pl := style.PaddingLeft()
 	//	pr := style.PaddingRight()
@@ -152,7 +181,7 @@ func (self *Editor) drawBody(s *view.Surface) {
 		for i := 0; i < len(self.Cursors); i++ {
 			c := self.Cursors[i]
 			if pos == self.Lines[c.Line][c.Column].Index {
-				self.drawCursor(s, b.X, b.Y, ce.Width, ce.Height)
+				self.drawCursor(s, m, b.X, b.Y, ce.Width, ce.Height)
 			}
 		}
 		pos++
@@ -166,6 +195,7 @@ func (self *Editor) drawBody(s *view.Surface) {
 	for l := 0; l < len(self.Lines); l++ {
 		line := self.Lines[l]
 		for col := 0; col < len(line); col++ {
+			idx := Index{l, col}
 			c := &line[col]
 
 			// Set the character bounds subtracting the
@@ -174,13 +204,14 @@ func (self *Editor) drawBody(s *view.Surface) {
 			c.Bounds.Y -= ce.Height
 
 			// Draw Text Selection if Present
-			if self.posInSelection(l, col) {
-				s.Save()
-				s.SetSourceRGBA(color.Gray4)
-				s.Rectangle(b.X, b.Y-c.Bounds.Height-2, c.Bounds.Width+2, c.Bounds.Height+8)
-				s.Fill()
-				// s.Flush()
-				s.Restore()
+			if sel := self.selectionAtIndex(idx); sel != nil {
+				pad := (ce.Height * self.LineSpace) - (ce.Height)
+				x, y := b.X, b.Y-c.Bounds.Height-(ce.Height/2)
+				w, h := c.Bounds.Width, c.Bounds.Height+pad
+				if c.Token.Type == tokenizer.TAB {
+					w = se.Xadvance * float64(self.TabWidth-(col%self.TabWidth))
+				}
+				sel.drawCharBG(s, self.Lines, idx, x, y, w, h)
 			}
 
 			//fmt.Println(b)
@@ -188,7 +219,7 @@ func (self *Editor) drawBody(s *view.Surface) {
 				updatePos()
 				self.drawWhitespace(s, 182, b)
 				// fmt.Println(l, ce.Height, self.LineSpace)
-				b.Y += ce.Height * float64(self.LineSpace)
+				b.Y += ce.Height * self.LineSpace
 				b.X = style.PaddingLeft() + PAD
 
 			} else if c.Token.Type == tokenizer.SPACE {
@@ -224,12 +255,17 @@ func (self *Editor) drawBody(s *view.Surface) {
 					if ts != tokenStyle {
 						s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
 						s.SetSourceRGBA(ts.Color)
+						m.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
+						m.SetSourceRGBA(ts.Color)
 						tokenStyle = ts
 					}
 				}
 				updatePos()
 
 				s.DrawRune(c.Rune, b.X, b.Y)
+				m.DrawRune(c.Rune, b.X, b.Y)
+				// m.Rectangle(b.X, b.Y, ce.Width, ce.Height)
+				// m.Fill()
 				//ex := s.TextExtents(string(c.Rune))
 				b.X += ce.Xadvance
 			}
@@ -237,25 +273,19 @@ func (self *Editor) drawBody(s *view.Surface) {
 	}
 }
 
-func (self *Editor) posInSelection(l, c int) bool {
+func (self *Editor) selectionAtIndex(i Index) *Selection {
 	if len(self.Selections) > 0 {
-		for i := 0; i < len(self.Selections); i++ {
-
-			s := *self.Selections[i]
-			s.Normalize()
-			if l > s.Start.Line && l < s.End.Line {
-				return true
-			} else if l == s.Start.Line && c >= s.Start.Column {
-				return true
-			} else if l == s.End.Line && c <= s.End.Column {
-				return true
+		for j := 0; j < len(self.Selections); j++ {
+			s := *self.Selections[j]
+			if s.IndexInSelection(i) {
+				return &s
 			}
 		}
 	}
-	return false
+	return nil
 }
 
-func (self *Editor) drawCursor(s *view.Surface, x, y, w, h float64) {
+func (self *Editor) drawCursor(s, m *view.Surface, x, y, w, h float64) {
 	s.Save()
 	// TODO Allow different Styles Of Cursors
 	s.SetSourceRGBA(color.Red1)

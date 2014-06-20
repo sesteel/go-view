@@ -15,7 +15,7 @@ import (
 func main() {
 	var waitOnExit chan bool
 	win := view.NewWindow("Editor Example", 0, 0, 600, 300)
-	win.SetSize(600, 900)
+	win.SetSize(800, 1000)
 	l := layout.NewFill(win)
 
 	tb := editor.New(win, "editor", TEXT)

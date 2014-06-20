@@ -27,6 +27,9 @@ var (
 	Black       RGBA
 	Blue1       RGBA
 	Blue2       RGBA
+	Blue3       RGBA
+	Blue4       RGBA
+	Blue5       RGBA
 	Cyan1       RGBA
 	Cyan2       RGBA
 	Teal1       RGBA
@@ -71,8 +74,11 @@ func init() {
 	Gray12 = HexRGBA(0x353B45FF)
 	Gray13 = HexRGBA(0x232A34FF)
 	Black = HexRGBA(0x050505FF)
-	Blue1 = HexRGBA(0x5D9CECFF)
-	Blue2 = HexRGBA(0x4A89DCFF)
+	Blue1 = HexRGBA(0xCDDBECFF)
+	Blue2 = HexRGBA(0xA3C3ECFF)
+	Blue3 = HexRGBA(0x5D9CECFF)
+	Blue4 = HexRGBA(0x4A89DCFF)
+	Blue5 = HexRGBA(0x2B486CFF)
 	Cyan1 = HexRGBA(0x4FC1E9FF)
 	Cyan2 = HexRGBA(0x3BAFDAFF)
 	Teal1 = HexRGBA(0x48CFADFF)

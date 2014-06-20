@@ -1,12 +1,9 @@
 package common
 
-import (
-
-)
-
+import ()
 
 type Bounds struct {
-	X, Y float64
+	Point
 	Size
 }
 
