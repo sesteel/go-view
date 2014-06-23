@@ -10,7 +10,6 @@ import (
 	"view"
 	"view/color"
 	. "view/common"
-	// "view/event"
 	"view/tokenizer"
 	"view/tokenizer/plaintext"
 )
@@ -135,18 +134,22 @@ func (self *Editor) Draw(s *view.Surface) {
 	s.Paint()
 	s2 := view.NewSurface(view.FORMAT_ARGB32, s.Width()-int(self.scrollMap.Width)-1, s.Height()*int(1/self.scrollMap.Scale))
 	defer s2.Destroy()
+
 	s3 := view.NewSurface(view.FORMAT_ARGB32, int(self.scrollMap.Width), s.Height())
 	defer s3.Destroy()
+	if self.DrawScrollMap {
+		defer self.scrollMap.draw(s, s3)
+	}
 	s3.Scale(self.scrollMap.Scale, self.scrollMap.Scale)
 
 	// Draw Body
 	self.drawBody(s2, s3)
-	s.SetSourceSurface(s2, self.scrollMap.Width+1, 0)
+	if self.DrawScrollMap {
+		s.SetSourceSurface(s2, self.scrollMap.Width+1, 0)
+	} else {
+		s.SetSourceSurface(s2, 0, 0)
+	}
 	s.Paint()
-	s.Flush()
-
-	// Draw Map
-	self.scrollMap.draw(s, s3)
 }
 
 func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) *extents {
@@ -222,19 +225,16 @@ func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
 			// Draw Text Selection if Present
 			self.drawTextSelection(s, idx, ce, se, c, b)
 
-			//fmt.Println(b)
 			if c.Token.Type == tokenizer.NEWLINE {
 				updatePos()
 				self.drawWhitespace(s, 182, b)
-				// fmt.Println(l, ce.Height, self.LineSpace)
 				b.Y += ce.Height * self.LineSpace
 				b.X = style.PaddingLeft() + PAD
 
 			} else if c.Token.Type == tokenizer.SPACE {
 				updatePos()
 				self.drawWhitespace(s, 183, b)
-				ad := s.TextExtents(string(c.Rune))
-				b.X += ad.Xadvance
+				b.X += se.Xadvance
 
 			} else if c.Token.Type == tokenizer.TAB {
 				updatePos()
@@ -261,15 +261,17 @@ func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
 					ts = defaultStyle
 				}
 
+				updatePos()
 				s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
 				s.SetSourceRGBA(ts.Color)
-
-				m.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
-				m.SetSourceRGBA(ts.Color)
-				updatePos()
-
 				s.DrawRune(c.Rune, b.X, b.Y)
-				m.DrawRune(c.Rune, b.X, b.Y)
+
+				if self.DrawScrollMap {
+					m.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
+					m.SetSourceRGBA(ts.Color)
+					m.DrawRune(c.Rune, b.X, b.Y)
+				}
+
 				ad := extents.Extents(c.Rune)
 				b.X += ad.Xadvance
 			}
