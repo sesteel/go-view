@@ -1,7 +1,22 @@
 go-view
 =======
 
-Go-View is an experimental project to build a rudimentary GUI library for Go upon a Cairo backend.  Current work centers around building foundational pieces upon which more complexity can be derived.  The core concepts revolve around the View interface, a Component interface, a Composite interface, and a Layout interface.  Types which implement these interfaces are used to construct a view tree in a similar fashion to most other GUI toolkits and libraries.  There are severe limitations and the project is really meant to explore tangential issues surrounding UI and UX design.
+Go-View is an experimental project to build a rudimentary GUI library for Go upon a Cairo backend.  Current work centers around building foundational pieces upon which more complexity can be derived.  The core concepts revolve around the View interface, a Component interface, a Composite interface, and a Layout interface.  Types which implement these interfaces are used to construct a view tree in a similar fashion to most other GUI toolkits and libraries.  There are severe limitations and the project is really meant to explore tangential issues surrounding UI and UX design.  This project is not in a usable state at the moment, but pull requests are welcome.
+
+Screenshot from the Button Example:<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/button_example.png>
+
+Screenshot from the Checkbox Example:<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/checkbox_example.png>
+
+Screenshot from the Progress Bar Example:<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/progress_bar_example.png>
+
+Screenshot from the Text Box Example:<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/text_box_example.png>
+
+Screenshot from the Editor Example:<br>
+<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/editor_example.png>
 
 ```go
 type Drawer interface {
@@ -44,17 +59,6 @@ type Layout interface {
 	event.MouseHandler
 }
 ```
-Screenshot from the Button Example:<br>
-<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/button_example.png>
-
-Screenshot from the Checkbox Example:<br>
-<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/checkbox_example.png>
-
-Screenshot from the Progress Bar Example:<br>
-<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/progress_bar_example.png>
-
-Screenshot from the Text Box Example:<br>
-<img src=https://raw.githubusercontent.com/sesteel/go-view/master/res/screenshots/text_box_example.png>
 
 Supported Unicode:
 0x0000 - 0x007F : Basic Latin (128)
