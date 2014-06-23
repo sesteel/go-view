@@ -6,4 +6,4 @@
 #
 # Copyright (c) 2014 Stanley Steel
 #
-ragel -Z -G0 word_tokenizer.rl -o word_tokenizer.go
+ragel -Z -G0 tokenizer.rl -o tokenizer.go

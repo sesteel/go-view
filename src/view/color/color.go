@@ -147,3 +147,8 @@ func (self RGBA) Shade(pct float64) RGBA {
 	}
 	return self
 }
+
+func (self RGBA) Alpha(alpha float64) RGBA {
+	self.A = alpha
+	return self
+}

@@ -1,10 +1,10 @@
 package main
 
 import (
-	. "view/common"
 	"fmt"
 	"view"
 	"view/color"
+	. "view/common"
 	"view/event"
 	"view/layout"
 	"view/widget/label"
@@ -39,9 +39,9 @@ func main() {
 		}
 	})
 
-	abs.Add(a, Bounds{10, 10, Size{180, 30}})
-	abs.Add(b, Bounds{10, 40, Size{180, 30}})
-	abs.Add(c, Bounds{10, 70, Size{180, 30}})
+	abs.Add(a, Bounds{Point{10, 10}, Size{180, 30}})
+	abs.Add(b, Bounds{Point{10, 40}, Size{180, 30}})
+	abs.Add(c, Bounds{Point{10, 70}, Size{180, 30}})
 	win.SetLayout(abs)
 	win.Start()
 	<-waitOnExit

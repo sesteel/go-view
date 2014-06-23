@@ -6,16 +6,15 @@
 package main
 
 import (
-	. "view/common"
+	"fmt"
 	"view"
 	"view/color"
+	. "view/common"
+	"view/event"
 	"view/layout"
 	"view/widget/textbox"
-	"view/event"
-	"fmt"
 )
 
-  
 func main() {
 	var waitOnExit chan bool
 	fmt.Println(color.HexRGBA(0xff77ff00))
@@ -25,61 +24,61 @@ func main() {
 	tb := textbox.New(win, msg)
 	style := tb.Style()
 	style.SetOverflowY(view.STYLE_OVERFLOW_Y_SCROLL)
-	
-	tb.AddMouseEnterHandler(func (mp event.Mouse){
-//		fmt.Println("Mouse Enter:", mp.X, mp.Y)
+
+	tb.AddMouseEnterHandler(func(mp event.Mouse) {
+		//		fmt.Println("Mouse Enter:", mp.X, mp.Y)
 	})
-	
-	tb.AddMouseExitHandler(func (mp event.Mouse){
-//		fmt.Println("Mouse Exit:", mp.X, mp.Y)
+
+	tb.AddMouseExitHandler(func(mp event.Mouse) {
+		//		fmt.Println("Mouse Exit:", mp.X, mp.Y)
 	})
-	
-	tb.AddMousePositionHandler(func (mp event.Mouse){
-//		fmt.Println("Mouse Position:", mp.X, mp.Y)
+
+	tb.AddMousePositionHandler(func(mp event.Mouse) {
+		//		fmt.Println("Mouse Position:", mp.X, mp.Y)
 	})
-	
-	tb.AddMouseButtonPressHandler(func (mp event.Mouse){
+
+	tb.AddMouseButtonPressHandler(func(mp event.Mouse) {
 		switch mp.Button {
-			case event.MOUSE_BUTTON_LEFT:
-				fmt.Println("LEFT PRESS")
-			case event.MOUSE_BUTTON_MIDDLE:
-				fmt.Println("MIDDLE PRESS")
-			case event.MOUSE_BUTTON_RIGHT:
-				fmt.Println("RIGHT PRESS")
+		case event.MOUSE_BUTTON_LEFT:
+			fmt.Println("LEFT PRESS")
+		case event.MOUSE_BUTTON_MIDDLE:
+			fmt.Println("MIDDLE PRESS")
+		case event.MOUSE_BUTTON_RIGHT:
+			fmt.Println("RIGHT PRESS")
 		}
 	})
-	
-	tb.AddMouseButtonReleaseHandler(func (mp event.Mouse){
+
+	tb.AddMouseButtonReleaseHandler(func(mp event.Mouse) {
 		switch mp.Button {
-			case event.MOUSE_BUTTON_LEFT:
-				fmt.Println("LEFT RELEASE")
-			case event.MOUSE_BUTTON_MIDDLE:
-				fmt.Println("MIDDLE RELEASE")
-			case event.MOUSE_BUTTON_RIGHT:
-				fmt.Println("RIGHT RELEASE")
+		case event.MOUSE_BUTTON_LEFT:
+			fmt.Println("LEFT RELEASE")
+		case event.MOUSE_BUTTON_MIDDLE:
+			fmt.Println("MIDDLE RELEASE")
+		case event.MOUSE_BUTTON_RIGHT:
+			fmt.Println("RIGHT RELEASE")
 		}
 	})
-	
-	tb.AddMouseWheelUpHandler(func (mp event.Mouse) {
+
+	tb.AddMouseWheelUpHandler(func(mp event.Mouse) {
 		fmt.Println("UP")
 	})
-	
-	tb.AddMouseWheelDownHandler(func (mp event.Mouse) {
+
+	tb.AddMouseWheelDownHandler(func(mp event.Mouse) {
 		fmt.Println("DOWN")
 	})
-	
+
 	tb.AddFocusGainedHandler(func() {
 		fmt.Println("Focus Gained")
 	})
-	
+
 	tb.AddFocusLostHandler(func() {
 		fmt.Println("Focus Lost")
 	})
-	
-	tb.AddKeyPressHandler(func(kb event.Keyboard){
-//		fmt.Println("<-->", kb.Char)
+
+	tb.AddKeyPressHandler(func(kb event.Keyboard) {
+		//		fmt.Println("<-->", kb.Char)
 	})
-	l.Add(tb, Bounds{0,0, Size{600,300}}) 
+	l.Add(tb, Bounds{Point{0, 0}, Size{600, 300}})
 	win.SetLayout(l)
 	win.Start()
 	<-waitOnExit
@@ -93,5 +92,3 @@ Cred irony sartorial aesthetic fingerstache mixtape, ethnic Odd Future. Small ba
 
 Fixie meh literally, four loko dreamcatcher banjo tofu. Cornhole meggings cred, selfies 3 wolf moon trust fund VHS dreamcatcher Schlitz asymmetrical try-hard ugh salvia. Lo-fi iPhone pop-up, twee Tumblr Schlitz fap leggings McSweeney's before they sold out skateboard vegan Cosby sweater raw denim. Slow-carb Portland butcher messenger bag meggings. Carles ugh XOXO before they sold out. Cray whatever roof party Brooklyn, keffiyeh Truffaut food truck small batch 8-bit viral sustainable jean shorts fap Austin before they sold out. Aesthetic hoodie wayfarers, flannel gentrify XOXO plaid dreamcatcher chambray fingerstache food truck Wes Anderson umami Truffaut.
 `
-
-

@@ -9,21 +9,25 @@ package textbox
 import (
 	//	"fmt"
 	"view"
-	"view/event"
 	"view/color"
+	"view/common"
+	"view/event"
 	"view/tokenizer"
+	"view/tokenizer/plaintext"
 )
 
 type TextBox struct {
 	view.DefaultComponent
 	verticalOffset view.ScrollOffset
 	tkns           []*tokenizer.Token
+	tknr           tokenizer.Tokenizer
 	cursor         *tokenizer.Token
 	//	model Document
 }
 
 func New(parent view.View, text string) *TextBox {
-	tb := &TextBox{*view.NewComponent(parent, text), 0, tokenizer.Tokenize(text), new(tokenizer.Token)}
+	tknr := plaintext.New()
+	tb := &TextBox{*view.NewComponent(parent, text), 0, tknr.Tokenize(text), tknr, new(tokenizer.Token)}
 	tb.AddMouseWheelDownHandler(func(event.Mouse) {
 		tb.verticalOffset++
 		tb.Redraw()
@@ -45,25 +49,19 @@ func New(parent view.View, text string) *TextBox {
 
 	tb.AddKeyPressHandler(func(k event.Keyboard) {
 		text = k.String() + text
-		tb.tkns = tokenizer.Tokenize(text)
+		tb.tkns = tknr.Tokenize(text)
 		tb.Redraw()
 	})
-	
-	cur := new(tokenizer.Token)
-	cur.Type = tokenizer.CURSOR
+
+	// cur := new(tokenizer.Token)
+	// cur.Type = tokenizer.CURSOR
 	return tb
 }
-
-//func (self *TextBox) MoveCursor(position int) {
-//	self.tkns = append(self.tkns, self.cursor)
-//	copy(self.tkns[self.cursor+1:], self.tkns[self.cursor:])
-//	self.tkns[tb.cursor] = cur
-//}
 
 func (self *TextBox) Draw(s *view.Surface) {
 
 	// resize to draw within outline
-	b := view.Bounds{0, 0, view.Size{float64(s.Width()), float64(s.Height())}}
+	b := common.Bounds{common.Point{0, 0}, common.Size{float64(s.Width()), float64(s.Height())}}
 	s.Rectangle(b.X, b.Y, b.Width, b.Height)
 	s.SetSourceRGBA(color.White)
 	s.Fill()
@@ -80,7 +78,4 @@ func (self *TextBox) Draw(s *view.Surface) {
 		s.DrawVerticalOverflow2(lines, drawnLines, percent, self.Style())
 	}
 
-	//	if width > float64(s.GetWidth()) {
-	//	s.DrawHorizontalOverflow(height, self.Style())
-	//	}
 }
