@@ -7,8 +7,8 @@
 package view
 
 import (
-	"view/event"
 	"view/color"
+	"view/event"
 )
 
 type Component interface {

@@ -111,6 +111,23 @@ func (self *Window) Redraw() {
 	self.dirty = true
 }
 
+// func NewBorderlessWindow(name string, x, y, w, h uint) *Window {
+// 	window := NewWindow(name, x, y, w, h)
+
+// 	var mwmhints C.Atom
+// 	var hints C.MwmHints
+// 	//// #include <Xll/X.h>
+// 	//// #include <X11/Xm/MwmUtil.h>
+// 	// internal atom that we are looking for
+// 	mwmhints = C.XInternAtom(window.display, C._XA_MWM_HINTS, C.False)
+// 	// hints = (MwmHints *)malloc(sizeof(MwmHints));
+// 	hints.decorations = 0
+// 	hints.flags |= MWM_HINTS_DECORATIONS
+// 	c.XChangeProperty(window.display, window.xwindow, mwmhints, mwmhints, 32, PropModeReplace, hints, 4)
+// 	c.XFlush(window.display)
+// 	return window
+// }
+
 func NewWindow(name string, x, y, w, h uint) *Window {
 	var width C.uint = C.uint(w)
 	var height C.uint = C.uint(h)
@@ -329,7 +346,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				}
 				s.Destroy()
 			}
-			time.Sleep(time.Millisecond * 30)
+			time.Sleep(time.Millisecond * 20)
 		}
 	}
 	window.drawloop = drawloop

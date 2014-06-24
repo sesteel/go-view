@@ -15,7 +15,17 @@ func (self *Editor) AddSelection(sel *Selection) {
 }
 
 func (self *Editor) ClearSelections() {
+	self.Selection = &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
 	self.Selections = make([]*Selection, 0)
+}
+
+func (self *Editor) Select(start, end Index) {
+	if self.Selection.Start.Line < 0 {
+		self.Selections = append(self.Selections, self.Selection)
+	}
+	self.Selection.Start = start
+	self.Selection.End = end
+	self.Selection.Normalize()
 }
 
 func (self *Editor) MoveCursor(x, y float64) {

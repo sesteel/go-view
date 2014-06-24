@@ -110,7 +110,6 @@ func (self *Editor) handleScrollMapOffset(ev event.Mouse) event.Mouse {
 }
 
 func (self *Editor) addTextSelectionBehavior() {
-	sel := &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
 
 	self.AddMouseButtonPressHandler(func(ev event.Mouse) {
 		switch ev.Button {
@@ -119,7 +118,7 @@ func (self *Editor) addTextSelectionBehavior() {
 			self.MoveCursor(float64(ev.X), float64(ev.Y))
 			kb := event.LastKeyboardState()
 			if kb.CtrlOnly() {
-				sel = &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
+				self.Selection = &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
 			} else {
 				self.Selections = make([]*Selection, 0)
 			}
@@ -130,12 +129,12 @@ func (self *Editor) addTextSelectionBehavior() {
 	self.AddMouseButtonReleaseHandler(func(ev event.Mouse) {
 		switch ev.Button {
 		case event.MOUSE_BUTTON_LEFT:
-			if sel.Start.Line > -1 {
+			if self.Selection.Start.Line > -1 {
 				ev := self.handleScrollMapOffset(ev)
 				idx := self.FindClosestIndex(ev.X, ev.Y)
 				l, _ := idx.Line, idx.Column
 				if l >= 0 {
-					sel = &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
+					self.Selection = &Selection{Range{Index{-1, -1}, Index{-1, -1}}}
 				}
 			}
 			self.Redraw()
@@ -146,13 +145,13 @@ func (self *Editor) addTextSelectionBehavior() {
 		if ev.LeftPressed {
 			ev := self.handleScrollMapOffset(ev)
 			idx := self.FindClosestIndex(ev.X, ev.Y)
-			if idx.Line >= 0 && idx.Column >= 0 && sel.Start.Line == -1 {
-				sel.Start = idx
-				sel.End.Column = idx.Column + 1
-				self.Selections = append(self.Selections, sel)
-			} else if idx.Line >= 0 && idx.Column >= 0 && sel.Start.Line > -1 {
-				sel.End = idx
-				sel.End.Column = idx.Column - 1
+			if idx.Line >= 0 && idx.Column >= 0 && self.Selection.Start.Line == -1 {
+				self.Selection.Start = idx
+				self.Selection.End.Column = idx.Column + 1
+				self.Selections = append(self.Selections, self.Selection)
+			} else if idx.Line >= 0 && idx.Column >= 0 && self.Selection.Start.Line > -1 {
+				self.Selection.End = idx
+				self.Selection.End.Column = idx.Column - 1
 				self.MoveCursor(float64(ev.X), float64(ev.Y))
 			}
 			self.Redraw()

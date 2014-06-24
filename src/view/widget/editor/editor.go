@@ -52,9 +52,6 @@ type Index struct {
 	Column int
 }
 
-// Cursor is used to store the position of the cursor via a Index.
-type Cursor Index
-
 // Error represent a range of characters where an error has occurred.
 type Error Range
 
@@ -81,6 +78,7 @@ type Editor struct {
 	TabWidth        int
 	LineSpace       float64
 	Cursors         []Cursor
+	Selection       *Selection
 	Selections      []*Selection
 	Errors          []*Error
 }
@@ -115,10 +113,11 @@ func New(parent view.View, name string, text string) *Editor {
 		4,
 		1.7,
 		[]Cursor{Cursor{0, 0}},
+		&Selection{Range{Index{-1, -1}, Index{-1, -1}}},
 		make([]*Selection, 0),
 		make([]*Error, 0),
 	}
-	e.addKeyboardHandler()
+	e.initDefaultKeyboardHandler()
 	e.addTextSelectionBehavior()
 	e.Style().SetPadding(0)
 	e.Style().SetRadius(0)
