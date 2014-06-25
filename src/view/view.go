@@ -27,7 +27,6 @@ type View interface {
 	event.MouseHandler
 	SetParent(View)
 	Parent() View
-	Surface() *Surface
 	Name() string
 	SetStyle(Style)
 	Style() Style
@@ -35,12 +34,7 @@ type View interface {
 
 type DefaultView struct {
 	parent  View
-	surface *Surface
 	name    string
-	width   float64
-	height  float64
-	x, y    float64
-	focus   bool
 	style   Style
 	current bool
 }
@@ -53,29 +47,12 @@ func (self *DefaultView) Parent() View {
 	return self.parent
 }
 
-func (self *DefaultView) Position() (float64, float64) {
-	return self.x, self.y
-}
-
-func (self *DefaultView) Surface() *Surface {
-	return self.surface
-}
-
 func (self *DefaultView) SetName(name string) {
 	self.name = name
 }
 
 func (self *DefaultView) Name() string {
 	return self.name
-}
-
-func (self *DefaultView) SetSize(width, height float64) {
-	self.width = width
-	self.height = height
-}
-
-func (self *DefaultView) Size() (float64, float64) {
-	return self.width, self.height
 }
 
 func (self *DefaultView) SetStyle(style Style) {
@@ -87,7 +64,7 @@ func (self *DefaultView) Style() Style {
 }
 
 func (self *DefaultView) Draw(surface *Surface) {
-	// default drawing does here
+	// default drawing goes here
 }
 
 func (self *DefaultView) Redraw() {

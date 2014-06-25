@@ -7,6 +7,53 @@ package color
 
 import ()
 
+type RGBA struct {
+	R, G, B, A float64
+}
+
+func clritof(c uint8) float64 {
+	if c == 0 {
+		return 0
+	} else {
+		return float64(c) / 255
+	}
+}
+
+func UintRGBA(r, g, b, a uint8) RGBA {
+	return RGBA{clritof(r), clritof(g), clritof(b), clritof(a)}
+}
+
+func HexRGBA(hex uint32) RGBA {
+	return RGBA{clritof(uint8(hex >> 24 & 0xFF)),
+		clritof(uint8(hex >> 16 & 0xFF)),
+		clritof(uint8(hex >> 8 & 0xFF)),
+		clritof(uint8(hex & 0xFF))}
+}
+
+func (self RGBA) Shade(pct float64) RGBA {
+	if pct < -1 {
+		return RGBA{0, 0, 0, self.A}
+	} else if pct > 1 {
+		return RGBA{1, 1, 1, self.A}
+	} else {
+		a := 1.0
+		b := pct
+		if pct < 0.0 {
+			a = 0.0
+			b = pct * -1.0
+		}
+		self.R = ((a - self.R) * b) + self.R
+		self.G = ((a - self.G) * b) + self.G
+		self.B = ((a - self.B) * b) + self.B
+	}
+	return self
+}
+
+func (self RGBA) Alpha(alpha float64) RGBA {
+	self.A = alpha
+	return self
+}
+
 var (
 	Selection RGBA
 
@@ -55,6 +102,8 @@ var (
 	WidgetForeground RGBA
 	ProgressBar      RGBA
 	Check            RGBA
+	ScrollTrack      RGBA
+	ScrollHandle     RGBA
 )
 
 func init() {
@@ -103,52 +152,7 @@ func init() {
 	WidgetForeground = Gray11
 	ProgressBar = HexRGBA(0xD770ADFF)
 	Check = HexRGBA(0xD770ADFF)
+	ScrollTrack = Gray10.Alpha(.1)
+	ScrollHandle = Gray10.Alpha(.3)
 
-}
-
-type RGBA struct {
-	R, G, B, A float64
-}
-
-func clritof(c uint8) float64 {
-	if c == 0 {
-		return 0
-	} else {
-		return float64(c) / 255
-	}
-}
-
-func UintRGBA(r, g, b, a uint8) RGBA {
-	return RGBA{clritof(r), clritof(g), clritof(b), clritof(a)}
-}
-
-func HexRGBA(hex uint32) RGBA {
-	return RGBA{clritof(uint8(hex >> 24 & 0xFF)),
-		clritof(uint8(hex >> 16 & 0xFF)),
-		clritof(uint8(hex >> 8 & 0xFF)),
-		clritof(uint8(hex & 0xFF))}
-}
-
-func (self RGBA) Shade(pct float64) RGBA {
-	if pct < -1 {
-		return RGBA{0, 0, 0, self.A}
-	} else if pct > 1 {
-		return RGBA{1, 1, 1, self.A}
-	} else {
-		a := 1.0
-		b := pct
-		if pct < 0.0 {
-			a = 0.0
-			b = pct * -1.0
-		}
-		self.R = ((a - self.R) * b) + self.R
-		self.G = ((a - self.G) * b) + self.G
-		self.B = ((a - self.B) * b) + self.B
-	}
-	return self
-}
-
-func (self RGBA) Alpha(alpha float64) RGBA {
-	self.A = alpha
-	return self
 }

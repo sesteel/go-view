@@ -5,10 +5,10 @@
 // Copyright (c) 2014 Stanley Steel
 package editor
 
-import (
-	"view"
-)
+// import (
+// 	"view"
+// )
 
-type Style struct {
-	view.DefaultStyle
-}
+// type Style struct {
+// 	view.DefaultStyle
+// }

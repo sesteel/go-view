@@ -13,8 +13,8 @@ import (
 
 type Component interface {
 	View
-	Focus() bool
-	SetFocus(bool)
+	// Focus() bool
+	// SetFocus(bool)
 }
 
 type DefaultComponent struct {
@@ -28,23 +28,16 @@ type DefaultComponent struct {
 // however.
 //
 // Aside, the name passed into this function reprsents this component
-// programtically and should be unique.  It is intended
-// to support
+// programtically and should be unique in cases where context may be
+// ambiguous.  It is intended to support testing and accessibility
+// frameworks.
 func NewComponent(parent View, name string) *DefaultComponent {
 	c := new(DefaultComponent)
 	c.parent = parent
 	c.style = NewStyle()
 	c.name = name
-	c.width, c.height = 10, 10
+	// TODO implement component again
 	return c
-}
-
-func (self *DefaultComponent) SetFocus(focus bool) {
-	self.focus = focus
-}
-
-func (self *DefaultComponent) Focus() bool {
-	return self.focus
 }
 
 func (self *DefaultComponent) Draw(surface *Surface) {
@@ -64,14 +57,14 @@ func (self *DefaultComponent) Draw(surface *Surface) {
 		surface.SetFontSize(16)
 		te := surface.TextExtents(msg)
 		surface.SetSourceRGB(1, 2, 1)
-		surface.RoundedRectangle(float64(self.x), float64(self.y), float64(te.Width), float64(self.height), 0, 0, 0, 0)
+		surface.RoundedRectangle(0, 0, float64(surface.Width()), float64(surface.Height()), 0, 0, 0, 0)
 		surface.StrokePreserve()
 		surface.Fill()
 
 		surface.SelectFontFace("Sans", FONT_SLANT_NORMAL, FONT_WEIGHT_NORMAL)
 		surface.SetFontSize(16)
 		surface.SetSourceRGBA(color.Cyan2)
-		surface.MoveTo(float64(self.x), float64(self.y)+te.Height)
+		surface.MoveTo(0, te.Height)
 		surface.ShowText(msg)
 
 		return
@@ -79,9 +72,9 @@ func (self *DefaultComponent) Draw(surface *Surface) {
 
 	surface.SetAntialias(ANTIALIAS_SUBPIXEL)
 	surface.SetSourceRGBA(style.Background())
-	surface.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 0, 0, 0, 0)
+	surface.RoundedRectangle(0, 0, float64(surface.Width()), float64(surface.Height()), 0, 0, 0, 0)
 	surface.Fill()
 	surface.SetLineWidth(style.BorderWidthTop())
-	surface.RoundedRectangle(float64(self.x), float64(self.y), float64(self.width), float64(self.height), 0, 0, 0, 0)
+	surface.RoundedRectangle(0, 0, float64(surface.Width()), float64(surface.Height()), 0, 0, 0, 0)
 	surface.StrokePreserve()
 }

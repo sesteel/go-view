@@ -12,36 +12,8 @@ import (
 	. "view/common"
 	"view/tokenizer"
 	"view/tokenizer/plaintext"
+	"view/widget/util"
 )
-
-type extents struct {
-	name    string
-	surface *view.Surface
-	mapping map[rune]*view.TextExtents
-}
-
-func (self *extents) Extents(r rune) *view.TextExtents {
-	e := self.mapping[r]
-	if e == nil {
-		// fmt.Println(r)
-		e = self.surface.TextExtents(string(r))
-		self.mapping[r] = e
-	}
-	return e
-}
-
-var extentMaps map[string]*extents
-
-func init() {
-	extentMaps = make(map[string]*extents, 0)
-}
-
-// TokenStyle provides the styling for various token types or subtypes.
-type TokenStyle struct {
-	Weight int
-	Slant  int
-	Color  color.RGBA
-}
 
 // Lines is an alias to hold lines of characters.
 type Lines [][]tokenizer.Character
@@ -81,6 +53,7 @@ type Editor struct {
 	Selection       *Selection
 	Selections      []*Selection
 	Errors          []*Error
+	vscroll         util.Scroll
 }
 
 // New creates and returns a simple Editor object with its defaults set.
@@ -116,7 +89,12 @@ func New(parent view.View, name string, text string) *Editor {
 		&Selection{Range{Index{-1, -1}, Index{-1, -1}}},
 		make([]*Selection, 0),
 		make([]*Error, 0),
+		nil,
 	}
+	e.vscroll = util.NewVerticalScroll(e)
+	e.vscroll.Style().SetForeground(color.White.Alpha(.75))
+	e.vscroll.Style().SetBackground(color.Gray10.Alpha(.05))
+
 	e.initDefaultKeyboardHandler()
 	e.addTextSelectionBehavior()
 	e.Style().SetPadding(0)
@@ -137,6 +115,10 @@ func (self *Editor) Draw(s *view.Surface) {
 	s3 := view.NewSurface(view.FORMAT_ARGB32, int(self.scrollMap.Width), s.Height())
 	defer s3.Destroy()
 	if self.DrawScrollMap {
+		self.vscroll.SetRatio(.25)
+		self.vscroll.SetPosition(0)
+		self.vscroll.Draw(s3)
+
 		defer self.scrollMap.draw(s, s3)
 	}
 	s3.Scale(self.scrollMap.Scale, self.scrollMap.Scale)
@@ -308,8 +290,8 @@ func (self *Editor) drawCursor(s, m *view.Surface, x, y, w, h float64) {
 	s.SetSourceRGBA(color.Red1)
 	s.SetLineCap(view.LINE_CAP_ROUND)
 	s.SetLineWidth(1)
-	s.MoveTo(x+1, y-h-2)
-	s.LineTo(x+1, y+2)
+	s.MoveTo(x+1-0.5, y-h-2-0.5)
+	s.LineTo(x+1-0.5, y+2-0.5)
 	s.Stroke()
 	s.Restore()
 }
@@ -331,8 +313,8 @@ func (self *Editor) drawMargin(s *view.Surface, xAdvance, padL, padT, padB float
 		y2 := float64(s.Height()) - padB
 		s.SetLineWidth(1)
 		s.SetSourceRGBA(self.MarginColor)
-		s.MoveTo(x, y1)
-		s.LineTo(x, y2)
+		s.MoveTo(x-0.5, y1-0.5)
+		s.LineTo(x-0.5, y2-0.5)
 		s.Stroke()
 	}
 }

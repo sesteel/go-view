@@ -80,7 +80,7 @@ func main() {
 	tb.Primitives["uintptr"] = true
 
 	tb.DrawWhitespace = false
-	tb.SetFocus(true)
+	// tb.SetFocus(true)
 	l.SetChild(tb)
 	win.SetLayout(l)
 	win.Start()

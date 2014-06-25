@@ -23,9 +23,9 @@ func (self *scrollMap) draw(a, b *view.Surface) {
 	a.SetSourceSurface(b, 0, 0)
 	a.Paint()
 	a.SetSourceRGBA(self.BoundaryLineColor)
-	a.MoveTo(self.Width+1, 0)
+	a.MoveTo(self.Width+1-0.5, 0)
 	a.SetLineWidth(self.BoundaryLineWidth)
-	a.LineTo(self.Width+1, float64(a.Height()))
+	a.LineTo(self.Width+1-0.5, float64(a.Height()))
 	a.Stroke()
 	a.Restore()
 }

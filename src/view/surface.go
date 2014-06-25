@@ -259,7 +259,7 @@ func (self *Surface) NewPath() {
 }
 
 func (self *Surface) MoveTo(x, y float64) {
-	C.cairo_move_to(self.context, C.double(x+0.5), C.double(y+0.5))
+	C.cairo_move_to(self.context, C.double(x), C.double(y))
 }
 
 func (self *Surface) NewSubPath() {
@@ -267,55 +267,53 @@ func (self *Surface) NewSubPath() {
 }
 
 func (self *Surface) LineTo(x, y float64) {
-	C.cairo_line_to(self.context, C.double(x+0.5), C.double(y+0.5))
+	C.cairo_line_to(self.context, C.double(x), C.double(y))
 }
 
 func (self *Surface) CurveTo(x1, y1, x2, y2, x3, y3 float64) {
 	C.cairo_curve_to(self.context,
-		C.double(x1+0.5), C.double(y1+0.5),
-		C.double(x2+0.5), C.double(y2+0.5),
-		C.double(x3+0.5), C.double(y3+0.5))
+		C.double(x1), C.double(y1),
+		C.double(x2), C.double(y2),
+		C.double(x3), C.double(y3))
 }
 
 func (self *Surface) Arc(xc, yc, radius, angle1, angle2 float64) {
 	C.cairo_arc(self.context,
-		C.double(xc+0.5), C.double(yc+0.5),
+		C.double(xc), C.double(yc),
 		C.double(radius),
 		C.double(angle1), C.double(angle2))
 }
 
 func (self *Surface) ArcNegative(xc, yc, radius, angle1, angle2 float64) {
 	C.cairo_arc_negative(self.context,
-		C.double(xc+0.5), C.double(yc+0.5),
+		C.double(xc), C.double(yc),
 		C.double(radius),
 		C.double(angle1), C.double(angle2))
 }
 
 func (self *Surface) RelMoveTo(dx, dy float64) {
-	C.cairo_rel_move_to(self.context, C.double(dx+0.5), C.double(dy+0.5))
+	C.cairo_rel_move_to(self.context, C.double(dx), C.double(dy))
 }
 
 func (self *Surface) RelLineTo(dx, dy float64) {
-	C.cairo_rel_line_to(self.context, C.double(dx+0.5), C.double(dy+0.5))
+	C.cairo_rel_line_to(self.context, C.double(dx), C.double(dy))
 }
 
 func (self *Surface) RelCurveTo(dx1, dy1, dx2, dy2, dx3, dy3 float64) {
 	C.cairo_rel_curve_to(self.context,
-		C.double(dx1+0.5), C.double(dy1+0.5),
-		C.double(dx2+0.5), C.double(dy2+0.5),
-		C.double(dx3+0.5), C.double(dy3+0.5))
+		C.double(dx1), C.double(dy1),
+		C.double(dx2), C.double(dy2),
+		C.double(dx3), C.double(dy3))
 }
 
 func (self *Surface) Rectangle(x, y, width, height float64) {
 	C.cairo_rectangle(self.context,
-		C.double(x+0.5), C.double(y+0.5),
+		C.double(x), C.double(y),
 		C.double(width), C.double(height))
 }
 
 func (self *Surface) RoundedRectangle(x, y, width, height, radiusUL, radiusUR, radiusLR, radiusLL float64) {
 	degrees := math.Pi / 180.0
-	x += 0.5
-	y += 0.5
 	self.NewSubPath()
 	self.Arc(x+radiusUL, y+radiusUL, radiusUL, 180*degrees, 270*degrees)
 	self.Arc(x+width-radiusUR, y+radiusUR, radiusUR, -90*degrees, 0*degrees)
@@ -386,11 +384,11 @@ func (self *Surface) ShowPage() {
 // Insideness testing
 
 func (self *Surface) InStroke(x, y float64) bool {
-	return C.cairo_in_stroke(self.context, C.double(x+0.5), C.double(y+0.5)) != 0
+	return C.cairo_in_stroke(self.context, C.double(x), C.double(y)) != 0
 }
 
 func (self *Surface) InFill(x, y float64) bool {
-	return C.cairo_in_fill(self.context, C.double(x+0.5), C.double(y+0.5)) != 0
+	return C.cairo_in_fill(self.context, C.double(x), C.double(y)) != 0
 }
 
 ///////////////////////////////////////////////////////////////////////////////

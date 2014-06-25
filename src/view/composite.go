@@ -20,29 +20,12 @@ func (self *CompositeView) Parent() View {
 	return self.parent
 }
 
-func (self *CompositeView) Position() (float64, float64) {
-	return self.x, self.y
-}
-
-func (self *CompositeView) Surface() *Surface {
-	return self.surface
-}
-
 func (self *CompositeView) SetLayout(layout Layout) {
 	self.layout = layout
 }
 
 func (self *CompositeView) Layout() Layout {
 	return self.layout
-}
-
-func (self *CompositeView) SetSize(width, height float64) {
-	self.width = width
-	self.height = height
-}
-
-func (self *CompositeView) Size() (float64, float64) {
-	return self.width, self.height
 }
 
 func (self *CompositeView) Draw(surface *Surface) {

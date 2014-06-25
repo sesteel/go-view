@@ -16,19 +16,19 @@ type TextField struct {
 }
 
 func New(parent view.View, name string) *TextField {
-	return &TextField{*view.NewComponent(parent, name)} 
+	return &TextField{*view.NewComponent(parent, name)}
 }
 
 func (self *TextField) Draw(s *view.Surface) {
-	x, y := self.Position()
-	w, h := self.Size()
-	
+	x, y := 0, 0
+	w, h := float64(s.Width()), float64(s.Height())
+
 	s.SetAntialias(view.ANTIALIAS_SUBPIXEL)
 	s.SetLineWidth(2)
 	s.SetSourceRGBA(color.Gray4)
 	s.RoundedRectangle(float64(x), float64(y), float64(w), float64(h), 2, 2, 2, 2)
 	s.StrokePreserve()
-	
+
 	s.SetAntialias(view.ANTIALIAS_SUBPIXEL)
 	p := view.NewLinearPattern(float64(x), float64(y), float64(x), float64(h))
 	p.AddColorStop(0, color.Gray1)
@@ -39,7 +39,7 @@ func (self *TextField) Draw(s *view.Surface) {
 	s.SetSource(p)
 	s.Fill()
 	p.Destroy()
-	
+
 	s.SetSourceRGB(.4, .4, .4)
 	s.SelectFontFace("Sans", view.FONT_SLANT_NORMAL, view.FONT_WEIGHT_NORMAL)
 	s.SetFontSize(16)

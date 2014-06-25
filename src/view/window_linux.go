@@ -44,6 +44,9 @@ type Window struct {
 	eventLoop   func()
 	drawloop    func()
 	dirty       bool
+	surface     *Surface
+	width       float64
+	height      float64
 }
 
 func (self *Window) Parent() View {
