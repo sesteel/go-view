@@ -19,6 +19,11 @@ type Drawer interface {
 	Redraw()
 }
 
+type Animator interface {
+	// Animate gets called 60 times a second
+	Animate(*Surface)
+}
+
 type View interface {
 	Drawer
 	event.FocusNotifier

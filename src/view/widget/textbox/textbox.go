@@ -40,21 +40,12 @@ func New(parent view.View, text string) *TextBox {
 		tb.Redraw()
 	})
 
-	tb.AddMouseWheelUpHandler(func(event.Mouse) {
-		if tb.verticalOffset > 0 {
-			tb.verticalOffset--
-		}
-		tb.Redraw()
-	})
-
 	tb.AddKeyPressHandler(func(k event.Keyboard) {
 		text = k.String() + text
 		tb.tkns = tknr.Tokenize(text)
 		tb.Redraw()
 	})
 
-	// cur := new(tokenizer.Token)
-	// cur.Type = tokenizer.CURSOR
 	return tb
 }
 

@@ -36,6 +36,12 @@ func (self *Fill) Draw(surface *view.Surface) {
 	self.child.Draw(surface)
 }
 
+func (self *Fill) Animate(surface *view.Surface) {
+	if anim, ok := self.child.(view.Animator); ok {
+		anim.Animate(surface)
+	}
+}
+
 func (self *Fill) Redraw() {
 	self.target.Redraw()
 }
@@ -61,7 +67,7 @@ func (self *Fill) MouseExit(ev event.Mouse) {
 }
 
 func (self *Fill) MouseWheelUp(ev event.Mouse) {
-	self.child.MouseWheelDown(ev)
+	self.child.MouseWheelUp(ev)
 }
 
 func (self *Fill) MouseWheelDown(ev event.Mouse) {

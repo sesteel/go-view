@@ -44,6 +44,19 @@ func (self *Absolute) Draw(s *view.Surface) {
 	}
 }
 
+func (self *Absolute) Animate(s *view.Surface) {
+	for i := 0; i < len(self.children); i++ {
+		g := self.children[i]
+		if anim, ok := g.view.(view.Animator); ok {
+			ns := view.NewSurface(view.FORMAT_ARGB32, int(g.bounds.Width), int(g.bounds.Height))
+			defer ns.Destroy()
+			anim.Animate(ns)
+			s.SetSourceSurface(ns, g.bounds.X, g.bounds.Y)
+			s.Paint()
+		}
+	}
+}
+
 func (self *Absolute) Redraw() {
 	self.target.Redraw()
 }

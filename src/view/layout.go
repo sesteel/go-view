@@ -24,5 +24,6 @@ import (
 //
 type Layout interface {
 	Drawer
+	Animator
 	event.MouseHandler
 }

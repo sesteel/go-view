@@ -6,9 +6,17 @@
 package editor
 
 import (
-	// "fmt"
+	"fmt"
 	"view/tokenizer"
 )
+
+func (self *Editor) ScrollTo(offset float64) {
+	if offset < 0 || int(offset) > len(self.Lines) {
+		return
+	}
+	self.vscroll.SetOffset(offset)
+
+}
 
 func (self *Editor) AddSelection(sel *Selection) {
 	self.Selections = append(self.Selections, sel)
@@ -40,12 +48,17 @@ func (self *Editor) FindClosestIndex(x, y float64) Index {
 	idx := Index{-1, -1}
 
 	findChar := func(x, y float64) bool {
+
 		for l := 0; l < len(self.Lines); l++ {
 			// get the last char for sampling
 			linelen := len(self.Lines[l])
 			last := self.Lines[l][linelen-1]
 
 			if y >= last.Bounds.Y && y <= last.Bounds.Y+last.Bounds.Height {
+				lx := last.Bounds.X
+				if self.DrawScrollMap {
+					lx += self.scrollMap.Width
+				}
 				if x >= last.Bounds.X+last.Bounds.Width {
 					idx.Column = linelen - 1
 					idx.Line = l
@@ -247,6 +260,7 @@ func (self *Editor) DeleteCharAfterCursors() {
 func (self *Editor) InsertCharAtCursors(r rune) {
 	for i := 0; i < len(self.Cursors); i++ {
 		c := self.Cursors[i]
+		fmt.Println(c, int(self.vscroll.Offset()), c.Line+int(self.vscroll.Offset()))
 		pos := self.Lines[c.Line][c.Column].Index
 		self.Text = self.Text[:pos] + string(r) + self.Text[pos:]
 		self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))

@@ -6,20 +6,44 @@
 package main
 
 import (
+	"flag"
+	"log"
+	"os"
+	"runtime/pprof"
 	"view"
 	"view/color"
+	"view/event"
+	"view/event/key"
 	"view/layout"
 	"view/tokenizer/golang"
 	"view/widget/editor"
 )
 
+var prof = flag.String("prof", "", "write cpu profile to file")
+
 func main() {
+	flag.Parse()
 	var waitOnExit chan bool
 	win := view.NewWindow("Editor Example", 0, 0, 600, 300)
 	win.SetSize(800, 1000)
 	l := layout.NewFill(win)
 
 	tb := editor.New(win, "editor", TEXT)
+
+	if *prof != "" {
+		f, err := os.Create(*prof)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		tb.AddKeyPressHandler(func(k event.Keyboard) {
+			log.Println("A", k.Value, key.ESC)
+			if k.Value == key.ESC {
+				pprof.StopCPUProfile()
+			}
+		})
+	}
+
 	tb.KeywordStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Blue4}
 	tb.StringStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Green2}
 	tb.PrimitiveStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_ITALIC, color.Purple1}
@@ -88,6 +112,15 @@ func main() {
 }
 
 // TODO Fix the fact that an empty string cannot be edited or display a cursor
+//
+//
+//
+//
+//
+//
+//
+//
+
 var TEXT = `package editor
 
 import (
@@ -189,203 +222,65 @@ func New(parent view.View, name string, text string) *Editor {
 	e.Style().SetForeground(color.Gray13)
 	e.Style().SetBackground(color.Gray1)
 	e.Style().SetFontName("Monospace")
-	e.Style().SetFontSize(14)
-	return e
-}
-
-func (self *Editor) Draw(s *view.Surface) {
-	s.SetSourceRGBA(self.Style().Background())
-	s.Paint()
-	s2 := view.NewSurface(view.FORMAT_ARGB32, s.Width()-int(self.scrollMap.Width)-1, s.Height()*int(1/self.scrollMap.Scale))
-	defer s2.Destroy()
-	s3 := view.NewSurface(view.FORMAT_ARGB32, int(self.scrollMap.Width), s.Height())
-	defer s3.Destroy()
-	s3.Scale(self.scrollMap.Scale, self.scrollMap.Scale)
-
-	// Draw Body
-	self.drawBody(s2, s3)
-	s.SetSourceSurface(s2, self.scrollMap.Width+1, 0)
-	s.Paint()
-	s.Flush()
-
-	// Draw Map
-	self.scrollMap.draw(s, s3)
-}
-
-func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) (spaceExtents, charExtents *view.TextExtents) {
-	s.SelectFontFace(style.FontName(), style.FontSlant(), style.FontWeight())
-	s.SetFontSize(style.FontSize())
-	s.SetAntialias(view.ANTIALIAS_SUBPIXEL)
-	s.SetSourceRGBA(style.Foreground())
-	return s.TextExtents(" "), s.TextExtents("M")
-}
-
-func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
-	style := self.Style()
-	pl := style.PaddingLeft()
-	//	pr := style.PaddingRight()
-	pt := style.PaddingTop()
-	pb := style.PaddingBottom()
-
-	var se *view.TextExtents
-	var ce *view.TextExtents
-
-	// Set Font
-	se, ce = self.applyTextStyle(s, style)
-
-	self.drawMargin(s, ce.Xadvance, pl, pt, pb)
-
-	PAD := 3.0
-	var b Bounds
-	b.Y = style.PaddingTop() + ce.Height + PAD
-	b.X = style.PaddingLeft() + PAD
-	b.Width = ce.Width
-	b.Height = ce.Height
-	s.SetSourceRGBA(style.Foreground())
-
-	var pos int = 0
-	updatePos := func() {
-		for i := 0; i < len(self.Cursors); i++ {
-			c := self.Cursors[i]
-			if pos == self.Lines[c.Line][c.Column].Index {
-				self.drawCursor(s, m, b.X, b.Y, ce.Width, ce.Height)
-			}
-		}
-		pos++
-	}
-
-	// TODO: Optimize state changes out...
-	var tokenClass tokenizer.TokenClass
-	var tokenStyle *TokenStyle
-	defaultStyle := &TokenStyle{style.FontWeight(), style.FontSlant(), style.Foreground()}
-
-	for l := 0; l < len(self.Lines); l++ {
-		line := self.Lines[l]
-		for col := 0; col < len(line); col++ {
-			idx := Index{l, col}
-			c := &line[col]
-
-			// Set the character bounds subtracting the
-			// character height to change coord space.
-			c.Bounds = b
-			c.Bounds.Y -= ce.Height
-
-			// Draw Text Selection if Present
-			if sel := self.selectionAtIndex(idx); sel != nil {
-				pad := (ce.Height * self.LineSpace) - (ce.Height)
-				x, y := b.X, b.Y-c.Bounds.Height-(ce.Height/2)
-				w, h := c.Bounds.Width, c.Bounds.Height+pad
-				if c.Token.Type == tokenizer.TAB {
-					w = se.Xadvance * float64(self.TabWidth-(col%self.TabWidth))
-				}
-				sel.drawCharBG(s, self.Lines, idx, x, y, w, h)
-			}
-
-			//fmt.Println(b)
-			if c.Token.Type == tokenizer.NEWLINE {
-				updatePos()
-				self.drawWhitespace(s, 182, b)
-				// fmt.Println(l, ce.Height, self.LineSpace)
-				b.Y += ce.Height * self.LineSpace
-				b.X = style.PaddingLeft() + PAD
-
-			} else if c.Token.Type == tokenizer.SPACE {
-				updatePos()
-				self.drawWhitespace(s, 183, b)
-				b.X += se.Xadvance
-
-			} else if c.Token.Type == tokenizer.TAB {
-				updatePos()
-				self.drawWhitespace(s, 166, b)
-				advance := float64(self.TabWidth - (col % self.TabWidth))
-				b.X += se.Xadvance * advance
-
-			} else {
-				var ts *TokenStyle
-				if tokenClass != c.Token.Type {
-					tokenClass = c.Token.Type
-					switch c.Token.Type {
-					case tokenizer.IDENTIFIER:
-						if self.Keywords[c.Token.Value] {
-							ts = &self.KeywordStyle
-						} else if self.Primitives[c.Token.Value] {
-							ts = &self.PrimitiveStyle
-						} else {
-							ts = defaultStyle
-						}
-					case tokenizer.STRING_LITERAL:
-						ts = &self.StringStyle
-					default:
-						ts = defaultStyle
-					}
-
-					if ts != tokenStyle {
-						s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
-						s.SetSourceRGBA(ts.Color)
-						m.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
-						m.SetSourceRGBA(ts.Color)
-						tokenStyle = ts
-					}
-				}
-				updatePos()
-
-				s.DrawRune(c.Rune, b.X, b.Y)
-				m.DrawRune(c.Rune, b.X, b.Y)
-				// m.Rectangle(b.X, b.Y, ce.Width, ce.Height)
-				// m.Fill()
-				//ex := s.TextExtents(string(c.Rune))
-				b.X += ce.Xadvance
-			}
-		}
-	}
-}
-
-func (self *Editor) selectionAtIndex(i Index) *Selection {
-	if len(self.Selections) > 0 {
-		for j := 0; j < len(self.Selections); j++ {
-			s := *self.Selections[j]
-			if s.IndexInSelection(i) {
-				return &s
-			}
-		}
-	}
-	return nil
-}
-
-func (self *Editor) drawCursor(s, m *view.Surface, x, y, w, h float64) {
-	s.Save()
-	// TODO Allow different Styles Of Cursors
-	s.SetSourceRGBA(color.Red1)
-	s.SetLineCap(view.LINE_CAP_ROUND)
-	s.SetLineWidth(1)
-	s.MoveTo(x+1, y-h-2)
-	s.LineTo(x+1, y+2)
-	s.Stroke()
-	s.Restore()
-}
-
-func (self *Editor) drawWhitespace(s *view.Surface, r rune, b Bounds) {
-	if self.DrawWhitespace {
-		s.Save()
-		s.SetSourceRGBA(self.WhitespaceColor)
-		s.DrawRune(r, b.X, b.Y)
-		s.Restore()
-	}
-}
-
-func (self *Editor) drawMargin(s *view.Surface, xAdvance, padL, padT, padB float64) {
-	// Draw Margin (Vertical Line)
-	if self.DrawMargin {
-		x := padL + (float64(self.MarginColumn) * xAdvance)
-		y1 := padT
-		y2 := float64(s.Height()) - padB
-		s.SetLineWidth(1)
-		s.SetSourceRGBA(self.MarginColor)
-		s.MoveTo(x, y1)
-		s.LineTo(x, y2)
-		s.Stroke()
-	}
-}
-
-
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+	xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 `

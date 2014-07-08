@@ -6,8 +6,8 @@
 package layout
 
 import (
-	. "view/common"
 	"view"
+	. "view/common"
 )
 
 // VSplit is a simple layout that expands a single
@@ -22,7 +22,7 @@ type VSplit struct {
 func NewVSplit(target view.View) *VSplit {
 	l := new(VSplit)
 	l.target = target
-//	division
+	//	division
 	return l
 }
 
@@ -43,9 +43,17 @@ func (self *VSplit) Right() view.Drawer {
 }
 
 func (self *VSplit) Draw(bounds Bounds, offset view.ScrollOffset) {
-//	s := self.target.Surface()
-//	s.Rectangle(float64(0), float64(0), )
-//	s.Clip()
-//	self.left.Draw()
-//	self.right.Draw()
+	//	s := self.target.Surface()
+	//	s.Rectangle(float64(0), float64(0), )
+	//	s.Clip()
+	//	self.left.Draw()
+	//	self.right.Draw()
+}
+
+func (self *VSplit) Animate(bounds Bounds, offset view.ScrollOffset) {
+	//	s := self.target.Surface()
+	//	s.Rectangle(float64(0), float64(0), )
+	//	s.Clip()
+	//	self.left.Draw()
+	//	self.right.Draw()
 }

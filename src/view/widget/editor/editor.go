@@ -10,9 +10,10 @@ import (
 	"view"
 	"view/color"
 	. "view/common"
+	"view/event"
 	"view/tokenizer"
 	"view/tokenizer/plaintext"
-	"view/widget/util"
+	"view/widget/scroll"
 )
 
 // Lines is an alias to hold lines of characters.
@@ -53,7 +54,8 @@ type Editor struct {
 	Selection       *Selection
 	Selections      []*Selection
 	Errors          []*Error
-	vscroll         util.Scroll
+	vscroll         scroll.Scroll
+	linesDrawn      float64
 }
 
 // New creates and returns a simple Editor object with its defaults set.
@@ -73,7 +75,7 @@ func New(parent view.View, name string, text string) *Editor {
 		true,
 		color.RGBA{color.Pink1.R, color.Pink1.G, color.Pink1.B, 0.25},
 		true,
-		scrollMap{150, 0.25, color.Gray2.Alpha(0.25), color.Gray2, 1.0},
+		scrollMap{150, 0.25, color.Gray2.Alpha(0.25), color.Gray2, 1.0, 0, 0},
 		true,
 		true,
 		color.RGBA{color.Cyan1.R, color.Cyan1.G, color.Cyan1.B, 0.5},
@@ -90,10 +92,25 @@ func New(parent view.View, name string, text string) *Editor {
 		make([]*Selection, 0),
 		make([]*Error, 0),
 		nil,
+		1,
 	}
-	e.vscroll = util.NewVerticalScroll(e)
-	e.vscroll.Style().SetForeground(color.White.Alpha(.75))
+
+	e.vscroll = scroll.NewVerticalScroll(e)
+	e.vscroll.Style().SetForeground(color.Blue5.Alpha(.15))
 	e.vscroll.Style().SetBackground(color.Gray10.Alpha(.05))
+	e.AddMouseWheelDownHandler(func(event.Mouse) {
+		offset := e.vscroll.Offset()
+		offset++
+		e.ScrollTo(offset)
+		e.Redraw()
+	})
+
+	e.AddMouseWheelUpHandler(func(event.Mouse) {
+		offset := e.vscroll.Offset()
+		offset--
+		e.ScrollTo(offset)
+		e.Redraw()
+	})
 
 	e.initDefaultKeyboardHandler()
 	e.addTextSelectionBehavior()
@@ -115,10 +132,6 @@ func (self *Editor) Draw(s *view.Surface) {
 	s3 := view.NewSurface(view.FORMAT_ARGB32, int(self.scrollMap.Width), s.Height())
 	defer s3.Destroy()
 	if self.DrawScrollMap {
-		self.vscroll.SetRatio(.25)
-		self.vscroll.SetPosition(0)
-		self.vscroll.Draw(s3)
-
 		defer self.scrollMap.draw(s, s3)
 	}
 	s3.Scale(self.scrollMap.Scale, self.scrollMap.Scale)
@@ -156,32 +169,34 @@ func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) *extents {
 }
 
 func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
-	style := self.Style()
-	pl := style.PaddingLeft()
-	//	pr := style.PaddingRight()
-	pt := style.PaddingTop()
-	pb := style.PaddingBottom()
 
-	// Set Font
+	const PAD = 3.0
+	style := self.Style()
+
+	// Configure Style and Get Metrics
 	extents := self.applyTextStyle(s, style)
 	ce := extents.Extents('M')
 	se := extents.Extents(' ')
-	self.drawMargin(s, ce.Xadvance, pl, pt, pb)
+	self.drawMargin(s, ce.Xadvance, style.PaddingLeft(), style.PaddingTop(), style.PaddingBottom())
+	s.SetSourceRGBA(style.Foreground())
 
-	PAD := 3.0
+	lineHeight := ce.Height * self.LineSpace
+	self.scrollMap.viewStart = float64(s.Height())
+	self.scrollMap.viewStop = 0
+
 	var b Bounds
 	b.Y = style.PaddingTop() + ce.Height + PAD
 	b.X = style.PaddingLeft() + PAD
 	b.Width = ce.Width
 	b.Height = ce.Height
-	s.SetSourceRGBA(style.Foreground())
 
+	poff := self.vscroll.Offset() * lineHeight
 	var pos int = 0
-	updatePos := func() {
+	updateCursorPosition := func(x, y float64) {
 		for i := 0; i < len(self.Cursors); i++ {
 			c := self.Cursors[i]
 			if pos == self.Lines[c.Line][c.Column].Index {
-				self.drawCursor(s, m, b.X, b.Y, ce.Width, ce.Height)
+				self.drawCursor(s, m, x, y, ce.Width, ce.Height)
 			}
 		}
 		pos++
@@ -206,19 +221,20 @@ func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
 			// Draw Text Selection if Present
 			self.drawTextSelection(s, idx, ce, se, c, b)
 
+			if b.Y < (float64(s.Height())*self.scrollMap.Scale)+poff && poff <= b.Y {
+				updateCursorPosition(b.X, b.Y)
+			}
+
 			if c.Token.Type == tokenizer.NEWLINE {
-				updatePos()
 				self.drawWhitespace(s, 182, b)
-				b.Y += ce.Height * self.LineSpace
+				b.Y += lineHeight
 				b.X = style.PaddingLeft() + PAD
 
 			} else if c.Token.Type == tokenizer.SPACE {
-				updatePos()
 				self.drawWhitespace(s, 183, b)
 				b.X += se.Xadvance
 
 			} else if c.Token.Type == tokenizer.TAB {
-				updatePos()
 				self.drawWhitespace(s, 166, b)
 				advance := float64(self.TabWidth - (col % self.TabWidth))
 				b.X += se.Xadvance * advance
@@ -242,12 +258,21 @@ func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
 					ts = defaultStyle
 				}
 
-				updatePos()
-				s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
-				s.SetSourceRGBA(ts.Color)
-				s.DrawRune(c.Rune, b.X, b.Y)
+				if b.Y < (float64(s.Height())*self.scrollMap.Scale)+poff && poff <= b.Y {
+					s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
+					s.SetSourceRGBA(ts.Color)
+					s.DrawRune(c.Rune, b.X, b.Y-poff)
 
-				if self.DrawScrollMap {
+					if self.scrollMap.viewStart > b.Y {
+						self.scrollMap.viewStart = b.Y - lineHeight
+					}
+
+					if self.scrollMap.viewStop < b.Y {
+						self.scrollMap.viewStop = b.Y
+					}
+				}
+
+				if self.DrawScrollMap && b.Y < float64(m.Height())/self.scrollMap.Scale {
 					m.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
 					m.SetSourceRGBA(ts.Color)
 					m.DrawRune(c.Rune, b.X, b.Y)
@@ -258,6 +283,7 @@ func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
 			}
 		}
 	}
+	fmt.Println(self.vscroll.Offset(), lineHeight)
 }
 
 func (self *Editor) selectionAtIndex(i Index) *Selection {

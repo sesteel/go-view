@@ -349,7 +349,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				}
 				s.Destroy()
 			}
-			time.Sleep(time.Millisecond * 20)
+			time.Sleep(time.Millisecond * 17)
 		}
 	}
 	window.drawloop = drawloop
