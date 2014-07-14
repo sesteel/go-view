@@ -6,6 +6,7 @@
 package editor
 
 import (
+	// "fmt"
 	"view/event"
 	"view/event/key"
 )
@@ -86,7 +87,6 @@ func (self *Editor) initDefaultKeyboardHandler() {
 		default:
 			self.InsertCharAtCursors(k.Rune())
 		}
-
 		self.Redraw()
 	})
 }

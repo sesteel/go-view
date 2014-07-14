@@ -151,6 +151,9 @@ func (self *Editor) drawLines(s *view.Surface) {
 			if len(self.lineSurfaces) == l {
 				surf = self.drawLine(s, line)
 				self.lineSurfaces = append(self.lineSurfaces, surf)
+			} else if self.lineSurfaces[l] == nil {
+				surf = self.drawLine(s, line)
+				self.lineSurfaces[l] = surf
 			} else {
 				surf = self.lineSurfaces[l]
 			}
@@ -294,5 +297,16 @@ func (self *Editor) drawCursors(s *view.Surface) {
 				cursor.Draw(s, c.Bounds, self)
 			}
 		}
+	}
+}
+
+func (self *Editor) destroyLineSurface(line int) {
+	if line < 0 && line >= len(self.lineSurfaces) {
+		return
+	}
+	s := self.lineSurfaces[line]
+	if s != nil {
+		s.Destroy()
+		self.lineSurfaces[line] = nil
 	}
 }

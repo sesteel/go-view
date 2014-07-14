@@ -253,10 +253,14 @@ func (self *Editor) InsertCharAtCursors(r rune) {
 		self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))
 		if r == '\n' {
 			c.Column = 0
+			self.destroyLineSurface(c.Line)
 			c.Line++
 		} else {
 			c.Column++
 		}
+		self.destroyLineSurface(c.Line)
+		log.Println(self.Cursors[0])
+		log.Println(c)
 	})
 }
 
