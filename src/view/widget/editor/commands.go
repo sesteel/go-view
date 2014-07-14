@@ -6,9 +6,13 @@
 package editor
 
 import (
-	"fmt"
+	"log"
 	"view/tokenizer"
 )
+
+func init() {
+	log.SetFlags(log.Lshortfile)
+}
 
 func (self *Editor) ScrollTo(offset float64) {
 	if offset < 0 || int(offset) > len(self.Lines) {
@@ -54,7 +58,7 @@ func (self *Editor) FindClosestIndex(x, y float64) Index {
 			linelen := len(self.Lines[l])
 			last := self.Lines[l][linelen-1]
 
-			if y >= last.Bounds.Y && y <= last.Bounds.Y+last.Bounds.Height {
+			if last.Bounds != nil && y >= last.Bounds.Y && y <= last.Bounds.Y+last.Bounds.Height {
 				lx := last.Bounds.X
 				if self.DrawScrollMap {
 					lx += self.scrollMap.Width
@@ -94,8 +98,7 @@ func (self *Editor) FindClosestIndex(x, y float64) Index {
 }
 
 func (self *Editor) MoveCursorsToPreviousToken() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := &self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		token := self.Lines[c.Line][c.Column].Token
 		pos := 0
 		for j := c.Column; j > 0; j-- {
@@ -106,12 +109,11 @@ func (self *Editor) MoveCursorsToPreviousToken() {
 			}
 		}
 		c.Column = pos
-	}
+	})
 }
 
 func (self *Editor) MoveCursorsToNextToken() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := &self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		token := self.Lines[c.Line][c.Column].Token
 		pos := len(self.Lines[c.Line]) - 1
 		for j := c.Column; j < len(self.Lines[c.Line]); j++ {
@@ -122,32 +124,29 @@ func (self *Editor) MoveCursorsToNextToken() {
 			}
 		}
 		c.Column = pos
-	}
+	})
 }
 
 // MoveCursorToLineStart moves the cursors to the begining of the line.
 func (self *Editor) MoveCursorToLineStart() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := &self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		if c.Column > 0 {
 			c.Column = 0
 		}
-	}
+	})
 }
 
 // MoveCursorToLineEnd moves the cursors to the end of the line.
 func (self *Editor) MoveCursorToLineEnd() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := &self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		c.Column = len(self.Lines[c.Line]) - 1
-	}
+	})
 }
 
 // MoveCursorLeft moves the cursor left one space or two the end of
 // the previous line if at the bigging of the line.
 func (self *Editor) MoveCursorsLeft() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		if c.Column > 0 {
 			c.Column--
 		} else {
@@ -158,15 +157,13 @@ func (self *Editor) MoveCursorsLeft() {
 				c.Column = len(self.Lines[c.Line]) - 1
 			}
 		}
-		self.Cursors[i] = c
-	}
+	})
 }
 
 // MoveCursorsRight moves the cursor right one space or to the next
 // line if the cursor is at the end of the line.
 func (self *Editor) MoveCursorsRight() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		if c.Column < len(self.Lines[c.Line])-1 {
 			c.Column++
 		} else {
@@ -177,15 +174,13 @@ func (self *Editor) MoveCursorsRight() {
 				c.Column = 0
 			}
 		}
-		self.Cursors[i] = c
-	}
+	})
 }
 
 // MoveCursorsUp moves the cursor up to the nearest column position on
 // the previous line.
 func (self *Editor) MoveCursorsUp() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		if c.Line > 0 {
 			c.Line--
 			l := len(self.Lines[c.Line])
@@ -193,15 +188,13 @@ func (self *Editor) MoveCursorsUp() {
 				c.Column = l - 1
 			}
 		}
-		self.Cursors[i] = c
-	}
+	})
 }
 
 // MoveCursorsDown moves the cursor down to the nearest column
 // position on the next line.
 func (self *Editor) MoveCursorsDown() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		if c.Line < len(self.Lines)-1 {
 			c.Line++
 			l := len(self.Lines[c.Line])
@@ -209,15 +202,13 @@ func (self *Editor) MoveCursorsDown() {
 				c.Column = l - 1
 			}
 		}
-		self.Cursors[i] = c
-	}
+	})
 }
 
 // DeleteCharBeforeCursors will remove the characters preceding the
 // cursors.  Like a standard backspace operation.
 func (self *Editor) DeleteCharBeforeCursors() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		if c.Column > 0 {
 			pos := self.Lines[c.Line][c.Column].Index
 			self.Text = self.Text[:pos-1] + self.Text[pos:]
@@ -236,31 +227,27 @@ func (self *Editor) DeleteCharBeforeCursors() {
 				c.Column = col
 			}
 		}
-		self.Cursors[i] = c
-	}
+	})
 }
 
 // DeleteCharBeforeCursors will remove the characters following the
 // cursors.  Like a standard delete operation.
 func (self *Editor) DeleteCharAfterCursors() {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := self.Cursors[i]
+	self.AtEachCursor(func(c *Cursor) {
 		if c.Line == len(self.Lines)-1 && c.Column == len(self.Lines[c.Line])-1 {
 			return
 		}
 		pos := self.Lines[c.Line][c.Column].Index
 		self.Text = self.Text[:pos] + self.Text[pos+1:]
 		self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))
-		self.Cursors[i] = c
-	}
+	})
 }
 
 // InsertCharAtCursors will place a character at the cursor location
 // moving subsequent character right
 func (self *Editor) InsertCharAtCursors(r rune) {
-	for i := 0; i < len(self.Cursors); i++ {
-		c := self.Cursors[i]
-		fmt.Println(c, int(self.vscroll.Offset()), c.Line+int(self.vscroll.Offset()))
+	self.AtEachCursor(func(c *Cursor) {
+		log.Println(string(r))
 		pos := self.Lines[c.Line][c.Column].Index
 		self.Text = self.Text[:pos] + string(r) + self.Text[pos:]
 		self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))
@@ -270,6 +257,12 @@ func (self *Editor) InsertCharAtCursors(r rune) {
 		} else {
 			c.Column++
 		}
-		self.Cursors[i] = c
+	})
+}
+
+func (self *Editor) AtEachCursor(f func(*Cursor)) {
+	for i := 0; i < len(self.Cursors); i++ {
+		c := self.Cursors[i]
+		f(c)
 	}
 }

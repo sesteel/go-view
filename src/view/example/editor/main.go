@@ -37,7 +37,6 @@ func main() {
 		}
 		pprof.StartCPUProfile(f)
 		tb.AddKeyPressHandler(func(k event.Keyboard) {
-			log.Println("A", k.Value, key.ESC)
 			if k.Value == key.ESC {
 				pprof.StopCPUProfile()
 			}

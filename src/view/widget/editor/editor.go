@@ -7,6 +7,8 @@ package editor
 
 import (
 	"fmt"
+	"math"
+	// "time"
 	"view"
 	"view/color"
 	. "view/common"
@@ -15,6 +17,8 @@ import (
 	"view/tokenizer/plaintext"
 	"view/widget/scroll"
 )
+
+const ALIGN = 0.5
 
 // Lines is an alias to hold lines of characters.
 type Lines [][]tokenizer.Character
@@ -50,12 +54,13 @@ type Editor struct {
 	CommentStyle    TokenStyle
 	TabWidth        int
 	LineSpace       float64
-	Cursors         []Cursor
+	Cursors         []*Cursor
 	Selection       *Selection
 	Selections      []*Selection
 	Errors          []*Error
 	vscroll         scroll.Scroll
 	linesDrawn      float64
+	lineSurfaces    []*view.Surface
 }
 
 // New creates and returns a simple Editor object with its defaults set.
@@ -86,14 +91,18 @@ func New(parent view.View, name string, text string) *Editor {
 		TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Black},
 		TokenStyle{view.FONT_WEIGHT_NORMAL, view.FONT_SLANT_ITALIC, color.Gray8},
 		4,
-		1.7,
-		[]Cursor{Cursor{0, 0}},
+		1,
+		make([]*Cursor, 0),
 		&Selection{Range{Index{-1, -1}, Index{-1, -1}}},
 		make([]*Selection, 0),
 		make([]*Error, 0),
 		nil,
 		1,
+		make([]*view.Surface, 0),
 	}
+
+	blue := color.Blue4
+	e.Cursors = append(e.Cursors, &Cursor{Index{0, 0}, OUTLINE, &blue})
 
 	e.vscroll = scroll.NewVerticalScroll(e)
 	e.vscroll.Style().SetForeground(color.Blue5.Alpha(.15))
@@ -119,31 +128,130 @@ func New(parent view.View, name string, text string) *Editor {
 	e.Style().SetForeground(color.Gray13)
 	e.Style().SetBackground(color.Gray1)
 	e.Style().SetFontName("Monospace")
-	e.Style().SetFontSize(14)
+	e.Style().SetFontSize(13)
 	return e
 }
 
 func (self *Editor) Draw(s *view.Surface) {
-	s.SetSourceRGBA(self.Style().Background())
-	s.Paint()
-	s2 := view.NewSurface(view.FORMAT_ARGB32, s.Width()-int(self.scrollMap.Width)-1, s.Height()*int(1/self.scrollMap.Scale))
-	defer s2.Destroy()
+	self.drawLines(s)
+	s.Flush()
+}
 
-	s3 := view.NewSurface(view.FORMAT_ARGB32, int(self.scrollMap.Width), s.Height())
-	defer s3.Destroy()
-	if self.DrawScrollMap {
-		defer self.scrollMap.draw(s, s3)
-	}
-	s3.Scale(self.scrollMap.Scale, self.scrollMap.Scale)
+func (self *Editor) Animate(s *view.Surface) {
+	self.drawCursors(s)
+	s.Flush()
+}
 
-	// Draw Body
-	self.drawBody(s2, s3)
-	if self.DrawScrollMap {
-		s.SetSourceSurface(s2, self.scrollMap.Width+1, 0)
-	} else {
-		s.SetSourceSurface(s2, 0, 0)
+func (self *Editor) drawLines(s *view.Surface) {
+	pos := Point{X: 0, Y: 0}
+	for l := int(self.vscroll.Offset()); l < len(self.Lines); l++ {
+		line := self.Lines[l]
+		if pos.Y < float64(s.Height()) {
+			var surf *view.Surface
+			if len(self.lineSurfaces) == l {
+				surf = self.drawLine(s, line)
+				self.lineSurfaces = append(self.lineSurfaces, surf)
+			} else {
+				surf = self.lineSurfaces[l]
+			}
+			s.SetSourceSurface(surf, 0, pos.Y)
+			s.Paint()
+			pos.Y += float64(surf.Height()) * self.LineSpace
+		} else {
+			return
+		}
 	}
-	s.Paint()
+}
+
+func (self *Editor) drawLine(s *view.Surface, line []tokenizer.Character) *view.Surface {
+	b, extents := self.lineBounds(s, line)
+	style := self.Style()
+	ce := extents.Extents('M')
+	se := extents.Extents(' ')
+	defaultStyle := &TokenStyle{style.FontWeight(), style.FontSlant(), style.Foreground()}
+	surf := view.NewSurface(view.FORMAT_ARGB32, int(b.Width), int(ce.Height-ce.Ybearing))
+	extents = self.applyTextStyle(surf, style)
+
+	var ts *TokenStyle
+	for col := 0; col < len(line); col++ {
+		c := &line[col]
+		y := ce.Height + (ce.Height / 3)
+		switch c.Token.Type {
+
+		case tokenizer.NEWLINE:
+			self.drawWhitespace(surf, 182, b)
+			c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{se.Xadvance, y}}
+			b.X += se.Xadvance
+			continue
+
+		case tokenizer.SPACE:
+			self.drawWhitespace(surf, 183, b)
+			c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{se.Xadvance, y}}
+			b.X += se.Xadvance
+			continue
+
+		case tokenizer.TAB:
+			// TODO - proper non-monospace tab support
+			self.drawWhitespace(s, 166, b)
+			advance := float64(self.TabWidth-(col%self.TabWidth)) * se.Xadvance
+			c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{advance, y}}
+			b.X = math.Floor(b.X+advance) + ALIGN
+			continue
+
+		case tokenizer.IDENTIFIER:
+			if self.Keywords[c.Token.Value] {
+				ts = &self.KeywordStyle
+			} else if self.Primitives[c.Token.Value] {
+				ts = &self.PrimitiveStyle
+			} else {
+				ts = defaultStyle
+			}
+
+		case tokenizer.STRING_LITERAL:
+			ts = &self.StringStyle
+
+		case tokenizer.COMMENT:
+			ts = &self.CommentStyle
+
+		default:
+			ts = defaultStyle
+		}
+
+		e := extents.Extents(c.Rune)
+		surf.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
+		surf.SetSourceRGBA(ts.Color)
+
+		surf.DrawRune(c.Rune, b.X, y)
+		c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{e.Xadvance, y}}
+		b.X = math.Floor(b.X+e.Xadvance) + ALIGN
+	}
+	return surf
+}
+
+func (self *Editor) lineBounds(s *view.Surface, line []tokenizer.Character) (Bounds, *extents) {
+	style := self.Style()
+	extents := self.applyTextStyle(s, style)
+	b := Bounds{Point: Point{X: ALIGN, Y: ALIGN}, Size: Size{Width: 0, Height: 0}}
+	se := extents.Extents(' ')
+	for col := 0; col < len(line); col++ {
+		c := &line[col]
+		e := extents.Extents(c.Rune)
+		if e.Height > b.Height {
+			b.Height = (e.Height - e.Ybearing)
+		}
+
+		switch c.Token.Type {
+		case tokenizer.SPACE, tokenizer.NEWLINE:
+			b.Width += se.Xadvance
+		case tokenizer.TAB:
+			advance := float64(self.TabWidth - (col % self.TabWidth))
+			b.Width += se.Xadvance * advance
+		default:
+			e := extents.Extents(c.Rune)
+			b.Width += e.Xadvance
+		}
+	}
+	return b, extents
 }
 
 func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) *extents {
@@ -168,160 +276,6 @@ func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) *extents {
 	return em
 }
 
-func (self *Editor) drawBody(s *view.Surface, m *view.Surface) {
-
-	const PAD = 3.0
-	style := self.Style()
-
-	// Configure Style and Get Metrics
-	extents := self.applyTextStyle(s, style)
-	ce := extents.Extents('M')
-	se := extents.Extents(' ')
-	self.drawMargin(s, ce.Xadvance, style.PaddingLeft(), style.PaddingTop(), style.PaddingBottom())
-	s.SetSourceRGBA(style.Foreground())
-
-	lineHeight := ce.Height * self.LineSpace
-	self.scrollMap.viewStart = float64(s.Height())
-	self.scrollMap.viewStop = 0
-
-	var b Bounds
-	b.Y = style.PaddingTop() + ce.Height + PAD
-	b.X = style.PaddingLeft() + PAD
-	b.Width = ce.Width
-	b.Height = ce.Height
-
-	poff := self.vscroll.Offset() * lineHeight
-	var pos int = 0
-	updateCursorPosition := func(x, y float64) {
-		for i := 0; i < len(self.Cursors); i++ {
-			c := self.Cursors[i]
-			if pos == self.Lines[c.Line][c.Column].Index {
-				self.drawCursor(s, m, x, y, ce.Width, ce.Height)
-			}
-		}
-		pos++
-	}
-
-	// TODO: Optimize state changes out...
-	// var tokenClass tokenizer.TokenClass
-	// var tokenStyle *TokenStyle
-	defaultStyle := &TokenStyle{style.FontWeight(), style.FontSlant(), style.Foreground()}
-
-	for l := 0; l < len(self.Lines); l++ {
-		line := self.Lines[l]
-		for col := 0; col < len(line); col++ {
-			idx := Index{l, col}
-			c := &line[col]
-
-			// Set the character bounds subtracting the
-			// character height to change coord space.
-			c.Bounds = b
-			c.Bounds.Y -= ce.Height
-
-			// Draw Text Selection if Present
-			self.drawTextSelection(s, idx, ce, se, c, b)
-
-			if b.Y < (float64(s.Height())*self.scrollMap.Scale)+poff && poff <= b.Y {
-				updateCursorPosition(b.X, b.Y)
-			}
-
-			if c.Token.Type == tokenizer.NEWLINE {
-				self.drawWhitespace(s, 182, b)
-				b.Y += lineHeight
-				b.X = style.PaddingLeft() + PAD
-
-			} else if c.Token.Type == tokenizer.SPACE {
-				self.drawWhitespace(s, 183, b)
-				b.X += se.Xadvance
-
-			} else if c.Token.Type == tokenizer.TAB {
-				self.drawWhitespace(s, 166, b)
-				advance := float64(self.TabWidth - (col % self.TabWidth))
-				b.X += se.Xadvance * advance
-
-			} else {
-				var ts *TokenStyle
-				switch c.Token.Type {
-				case tokenizer.IDENTIFIER:
-					if self.Keywords[c.Token.Value] {
-						ts = &self.KeywordStyle
-					} else if self.Primitives[c.Token.Value] {
-						ts = &self.PrimitiveStyle
-					} else {
-						ts = defaultStyle
-					}
-				case tokenizer.STRING_LITERAL:
-					ts = &self.StringStyle
-				case tokenizer.COMMENT:
-					ts = &self.CommentStyle
-				default:
-					ts = defaultStyle
-				}
-
-				if b.Y < (float64(s.Height())*self.scrollMap.Scale)+poff && poff <= b.Y {
-					s.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
-					s.SetSourceRGBA(ts.Color)
-					s.DrawRune(c.Rune, b.X, b.Y-poff)
-
-					if self.scrollMap.viewStart > b.Y {
-						self.scrollMap.viewStart = b.Y - lineHeight
-					}
-
-					if self.scrollMap.viewStop < b.Y {
-						self.scrollMap.viewStop = b.Y
-					}
-				}
-
-				if self.DrawScrollMap && b.Y < float64(m.Height())/self.scrollMap.Scale {
-					m.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
-					m.SetSourceRGBA(ts.Color)
-					m.DrawRune(c.Rune, b.X, b.Y)
-				}
-
-				ad := extents.Extents(c.Rune)
-				b.X += ad.Xadvance
-			}
-		}
-	}
-	fmt.Println(self.vscroll.Offset(), lineHeight)
-}
-
-func (self *Editor) selectionAtIndex(i Index) *Selection {
-	if len(self.Selections) > 0 {
-		for j := 0; j < len(self.Selections); j++ {
-			s := *self.Selections[j]
-			if s.IndexInSelection(i) {
-				return &s
-			}
-		}
-	}
-	return nil
-}
-
-func (self *Editor) drawTextSelection(surface *view.Surface, idx Index, ce, se *view.TextExtents, c *tokenizer.Character, b Bounds) {
-	if sel := self.selectionAtIndex(idx); sel != nil {
-		pad := (ce.Height * self.LineSpace) - (ce.Height)
-		x, y := b.X, b.Y-c.Bounds.Height-(ce.Height/2)
-		w, h := c.Bounds.Width, c.Bounds.Height+pad
-		if c.Token.Type == tokenizer.TAB {
-			w = se.Xadvance * float64(self.TabWidth-(idx.Column%self.TabWidth))
-		}
-		sel.drawCharBG(surface, self.Lines, idx, x, y, w, h)
-	}
-}
-
-func (self *Editor) drawCursor(s, m *view.Surface, x, y, w, h float64) {
-	s.Save()
-	// TODO Allow different Styles Of Cursors
-	s.SetSourceRGBA(color.Red1)
-	s.SetLineCap(view.LINE_CAP_ROUND)
-	s.SetLineWidth(1)
-	s.MoveTo(x+1-0.5, y-h-2-0.5)
-	s.LineTo(x+1-0.5, y+2-0.5)
-	s.Stroke()
-	s.Restore()
-}
-
 func (self *Editor) drawWhitespace(s *view.Surface, r rune, b Bounds) {
 	if self.DrawWhitespace {
 		s.Save()
@@ -331,16 +285,14 @@ func (self *Editor) drawWhitespace(s *view.Surface, r rune, b Bounds) {
 	}
 }
 
-func (self *Editor) drawMargin(s *view.Surface, xAdvance, padL, padT, padB float64) {
-	// Draw Margin (Vertical Line)
-	if self.DrawMargin {
-		x := padL + (float64(self.MarginColumn) * xAdvance)
-		y1 := padT
-		y2 := float64(s.Height()) - padB
-		s.SetLineWidth(1)
-		s.SetSourceRGBA(self.MarginColor)
-		s.MoveTo(x-0.5, y1-0.5)
-		s.LineTo(x-0.5, y2-0.5)
-		s.Stroke()
+func (self *Editor) drawCursors(s *view.Surface) {
+	for _, cursor := range self.Cursors {
+		if cursor.Line < len(self.Lines) {
+			line := self.Lines[cursor.Line]
+			if cursor.Column < len(line) {
+				c := line[cursor.Column]
+				cursor.Draw(s, c.Bounds, self)
+			}
+		}
 	}
 }

@@ -23,12 +23,17 @@ import "C"
 import (
 	//	"errors"
 	"fmt"
+	"os"
 	"reflect"
 	"runtime"
 	"time"
 	"unsafe"
 	"view/color"
 	"view/event"
+)
+
+const (
+	_DELETE_WINDOW = "WM_DELETE_WINDOW"
 )
 
 func init() {
@@ -114,20 +119,24 @@ func (self *Window) Redraw() {
 	self.dirty = true
 }
 
+func (self *Window) Animate(s *Surface) {
+	self.layout.Animate(s)
+}
+
 // func NewBorderlessWindow(name string, x, y, w, h uint) *Window {
 // 	window := NewWindow(name, x, y, w, h)
 
-// 	var mwmhints C.Atom
-// 	var hints C.MwmHints
+// 	// var mwmhints C.Atom
+// 	// var hints C.MwmHints
 // 	//// #include <Xll/X.h>
 // 	//// #include <X11/Xm/MwmUtil.h>
 // 	// internal atom that we are looking for
-// 	mwmhints = C.XInternAtom(window.display, C._XA_MWM_HINTS, C.False)
+// 	mwmhints := C.XInternAtom(window.display, C._XA_MWM_HINTS, C.False)
 // 	// hints = (MwmHints *)malloc(sizeof(MwmHints));
 // 	hints.decorations = 0
 // 	hints.flags |= MWM_HINTS_DECORATIONS
-// 	c.XChangeProperty(window.display, window.xwindow, mwmhints, mwmhints, 32, PropModeReplace, hints, 4)
-// 	c.XFlush(window.display)
+// 	C.XChangeProperty(window.display, window.xwindow, mwmhints, mwmhints, 32, PropModeReplace, hints, 4)
+// 	C.XFlush(window.display)
 // 	return window
 // }
 
@@ -203,6 +212,11 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 	/* okay, put the window on the screen, please */
 	C.XMapWindow(dpy, win)
+
+	delwin := C.CString(_DELETE_WINDOW)
+	defer C.free(unsafe.Pointer(delwin))
+	WM_DELETE_WINDOW := C.XInternAtom(dpy, delwin, C.False)
+	C.XSetWMProtocols(dpy, win, &WM_DELETE_WINDOW, 1)
 
 	s := C.cairo_xlib_surface_create(dpy, C.Drawable(win), C.XDefaultVisual(dpy, 0), C.int(width), C.int(height))
 	ctx := C.cairo_create(s)
@@ -304,6 +318,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 					right = false
 					window.MouseButtonRelease(event.Mouse{event.MOUSE_BUTTON_RIGHT, event.MouseState{left, middle, right, float64(evt.x), float64(evt.y)}})
 				}
+
 			case C.KeyPress:
 				evt := (*C.XKeyEvent)(unsafe.Pointer(&ev[0]))
 				var keysyms_per_keycode_return C.int
@@ -322,6 +337,10 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 				event.DispatchKeyRelease(keymap[symbol])
 				//				fmt.Printf("[ %x ] %x\n", *keysym, evt.keycode)
 
+			case C.ClientMessage:
+				C.XCloseDisplay(dpy)
+				os.Exit(0)
+
 			default:
 				C.XFlush(dpy)
 			}
@@ -330,26 +349,46 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	window.eventLoop = eventLoop
 
 	drawloop := func() {
+		var before time.Time
+		count := 0
+		if DEBUG_DRAW_ALL {
+			before = time.Now()
+		}
+
+		s1 := NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
 		for {
 			if window.dirty {
 				window.dirty = false
-				var before time.Time
-				if DEBUG_DRAW_ALL {
-					before = time.Now()
-				}
-
-				s := NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
-				window.Draw(s)
-				window.surface.SetSourceSurface(s, 0, 0)
-				window.surface.Paint()
-				C.XFlush(window.display)
-
-				if DEBUG_DRAW_ALL {
-					fmt.Println("Draw Window>:", time.Since(before))
-				}
-				s.Destroy()
+				s1.Destroy()
+				s1 = NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
+				window.Draw(s1)
 			}
-			time.Sleep(time.Millisecond * 17)
+
+			s2 := NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
+			s2.SetSourceSurface(s1, 0, 0)
+			s2.Paint()
+			window.Animate(s2)
+			s2.Flush()
+			window.surface.SetSourceSurface(s2, 0, 0)
+			window.surface.Paint()
+			window.surface.Flush()
+
+			s2.Destroy()
+
+			if DEBUG_DRAW_ALL {
+				if time.Since(before).Seconds() >= 1 {
+					if count < 65 {
+						fmt.Println("FPS:", count)
+					}
+					count = 0
+					before = time.Now()
+				} else {
+					count++
+				}
+			}
+
+			C.XFlush(window.display)
+			time.Sleep(time.Millisecond * 15)
 		}
 	}
 	window.drawloop = drawloop
