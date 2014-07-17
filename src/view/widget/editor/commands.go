@@ -55,23 +55,23 @@ func (self *Editor) FindClosestIndex(x, y float64) Index {
 
 		for l := 0; l < len(self.Lines); l++ {
 			// get the last char for sampling
-			linelen := len(self.Lines[l])
-			last := self.Lines[l][linelen-1]
-
-			if last.Bounds != nil && y >= last.Bounds.Y && y <= last.Bounds.Y+last.Bounds.Height {
-				lx := last.Bounds.X
+			linelen := len(self.Lines[l].Characters)
+			// last := self.Lines[l].Characters[linelen-1]
+			lastBounds := self.Lines[l].Bounds[linelen-1]
+			if lastBounds.X != -1 && y >= lastBounds.Y && y <= lastBounds.Y+lastBounds.Height {
+				lx := lastBounds.X
 				if self.DrawScrollMap {
 					lx += self.scrollMap.Width
 				}
-				if x >= last.Bounds.X+last.Bounds.Width {
+				if x >= lastBounds.X+lastBounds.Width {
 					idx.Column = linelen - 1
 					idx.Line = l
 					return true
 				}
 
 				for c := 0; c < linelen; c++ {
-					char := self.Lines[l][c]
-					if char.Bounds.Contains(x, y) {
+					char := self.Lines[l].Bounds[c]
+					if char.Contains(x, y) {
 						idx.Column = c
 						idx.Line = l
 						return true
@@ -99,10 +99,10 @@ func (self *Editor) FindClosestIndex(x, y float64) Index {
 
 func (self *Editor) MoveCursorsToPreviousToken() {
 	self.AtEachCursor(func(c *Cursor) {
-		token := self.Lines[c.Line][c.Column].Token
+		token := self.Lines[c.Line].Characters[c.Column].Token
 		pos := 0
 		for j := c.Column; j > 0; j-- {
-			char := self.Lines[c.Line][j]
+			char := self.Lines[c.Line].Characters[j]
 			if !char.Token.Type.Whitespace() && char.Token.Start != token.Start {
 				pos = c.Column - (token.Start - char.Token.Start)
 				break
@@ -114,12 +114,12 @@ func (self *Editor) MoveCursorsToPreviousToken() {
 
 func (self *Editor) MoveCursorsToNextToken() {
 	self.AtEachCursor(func(c *Cursor) {
-		token := self.Lines[c.Line][c.Column].Token
-		pos := len(self.Lines[c.Line]) - 1
-		for j := c.Column; j < len(self.Lines[c.Line]); j++ {
-			char := self.Lines[c.Line][j]
+		token := self.Lines[c.Line].Characters[c.Column].Token
+		pos := len(self.Lines[c.Line].Characters) - 1
+		for j := c.Column; j < len(self.Lines[c.Line].Characters); j++ {
+			char := self.Lines[c.Line].Characters[j]
 			if !char.Token.Type.Whitespace() && char.Token.Start != token.Start {
-				pos = char.Index - self.Lines[c.Line][0].Index
+				pos = char.Index - self.Lines[c.Line].Characters[0].Index
 				break
 			}
 		}
@@ -139,7 +139,7 @@ func (self *Editor) MoveCursorToLineStart() {
 // MoveCursorToLineEnd moves the cursors to the end of the line.
 func (self *Editor) MoveCursorToLineEnd() {
 	self.AtEachCursor(func(c *Cursor) {
-		c.Column = len(self.Lines[c.Line]) - 1
+		c.Column = len(self.Lines[c.Line].Characters) - 1
 	})
 }
 
@@ -154,7 +154,7 @@ func (self *Editor) MoveCursorsLeft() {
 				return
 			} else {
 				c.Line--
-				c.Column = len(self.Lines[c.Line]) - 1
+				c.Column = len(self.Lines[c.Line].Characters) - 1
 			}
 		}
 	})
@@ -164,7 +164,7 @@ func (self *Editor) MoveCursorsLeft() {
 // line if the cursor is at the end of the line.
 func (self *Editor) MoveCursorsRight() {
 	self.AtEachCursor(func(c *Cursor) {
-		if c.Column < len(self.Lines[c.Line])-1 {
+		if c.Column < len(self.Lines[c.Line].Characters)-1 {
 			c.Column++
 		} else {
 			if c.Line == len(self.Lines)-1 {
@@ -183,7 +183,7 @@ func (self *Editor) MoveCursorsUp() {
 	self.AtEachCursor(func(c *Cursor) {
 		if c.Line > 0 {
 			c.Line--
-			l := len(self.Lines[c.Line])
+			l := len(self.Lines[c.Line].Characters)
 			if c.Column > l-1 {
 				c.Column = l - 1
 			}
@@ -197,7 +197,7 @@ func (self *Editor) MoveCursorsDown() {
 	self.AtEachCursor(func(c *Cursor) {
 		if c.Line < len(self.Lines)-1 {
 			c.Line++
-			l := len(self.Lines[c.Line])
+			l := len(self.Lines[c.Line].Characters)
 			if c.Column > l-1 {
 				c.Column = l - 1
 			}
@@ -210,20 +210,21 @@ func (self *Editor) MoveCursorsDown() {
 func (self *Editor) DeleteCharBeforeCursors() {
 	self.AtEachCursor(func(c *Cursor) {
 		if c.Column > 0 {
-			pos := self.Lines[c.Line][c.Column].Index
+			pos := self.Lines[c.Line].Characters[c.Column].Index
 			self.Text = self.Text[:pos-1] + self.Text[pos:]
-			self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))
+			self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.Text))
 			c.Column--
-
+			self.destroyLineSurface(c.Line)
 		} else {
 			if c.Line == 0 {
 				return
 			} else {
-				col := len(self.Lines[c.Line-1]) - 1
-				pos := self.Lines[c.Line-1][col].Index
-				self.Text = self.Text[:pos] + self.Text[pos+1:]
-				self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))
+				col := len(self.Lines[c.Line-1].Characters) - 1
+				pos := self.Lines[c.Line-1].Characters[col].Index
+				self.SetText(self.Text[:pos] + self.Text[pos+1:])
+				self.removeLineSurface(c.Line)
 				c.Line--
+				self.destroyLineSurface(c.Line)
 				c.Column = col
 			}
 		}
@@ -234,12 +235,13 @@ func (self *Editor) DeleteCharBeforeCursors() {
 // cursors.  Like a standard delete operation.
 func (self *Editor) DeleteCharAfterCursors() {
 	self.AtEachCursor(func(c *Cursor) {
-		if c.Line == len(self.Lines)-1 && c.Column == len(self.Lines[c.Line])-1 {
+		if c.Line == len(self.Lines)-1 && c.Column == len(self.Lines[c.Line].Characters)-1 {
 			return
 		}
-		pos := self.Lines[c.Line][c.Column].Index
+		pos := self.Lines[c.Line].Characters[c.Column].Index
 		self.Text = self.Text[:pos] + self.Text[pos+1:]
-		self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))
+		self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.Text))
+		self.destroyLineSurface(c.Line)
 	})
 }
 
@@ -247,20 +249,17 @@ func (self *Editor) DeleteCharAfterCursors() {
 // moving subsequent character right
 func (self *Editor) InsertCharAtCursors(r rune) {
 	self.AtEachCursor(func(c *Cursor) {
-		log.Println(string(r))
-		pos := self.Lines[c.Line][c.Column].Index
+		// log.Println(string(r))
+		pos := self.Lines[c.Line].Characters[c.Column].Index
 		self.Text = self.Text[:pos] + string(r) + self.Text[pos:]
-		self.Lines = tokenizer.ToLinesOfCharacters(self.Tokenizer.Tokenize(self.Text))
+		self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.Text))
 		if r == '\n' {
 			c.Column = 0
-			self.destroyLineSurface(c.Line)
 			c.Line++
 		} else {
 			c.Column++
 		}
 		self.destroyLineSurface(c.Line)
-		log.Println(self.Cursors[0])
-		log.Println(c)
 	})
 }
 

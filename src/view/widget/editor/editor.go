@@ -7,6 +7,7 @@ package editor
 
 import (
 	"fmt"
+	"log"
 	"math"
 	// "time"
 	"view"
@@ -19,9 +20,6 @@ import (
 )
 
 const ALIGN = 0.5
-
-// Lines is an alias to hold lines of characters.
-type Lines [][]tokenizer.Character
 
 // Index represents a character position in the Lines data structure.
 type Index struct {
@@ -37,7 +35,7 @@ type Editor struct {
 	view.DefaultComponent
 	Tokenizer       tokenizer.Tokenizer
 	Text            string // TODO Consider how to optimize this away as it gets created repeatedly
-	Lines           Lines
+	Lines           []tokenizer.Line
 	MarginColumn    int
 	DrawMargin      bool
 	MarginColor     color.RGBA
@@ -75,7 +73,7 @@ func New(parent view.View, name string, text string) *Editor {
 		*view.NewComponent(parent, name),
 		tknzr,
 		text,
-		tokenizer.ToLinesOfCharacters(tknzr.Tokenize(text)),
+		tokenizer.ToLines(tknzr.Tokenize(text)),
 		80,
 		true,
 		color.RGBA{color.Pink1.R, color.Pink1.G, color.Pink1.B, 0.25},
@@ -154,8 +152,15 @@ func (self *Editor) drawLines(s *view.Surface) {
 			} else if self.lineSurfaces[l] == nil {
 				surf = self.drawLine(s, line)
 				self.lineSurfaces[l] = surf
+			} else if len(line.Bounds) > 0 && line.Bounds[0].X == -1 {
+				self.lineSurfaces[l].Destroy()
+				surf = self.drawLine(s, line)
+				self.lineSurfaces[l] = surf
 			} else {
 				surf = self.lineSurfaces[l]
+			}
+			if surf == nil {
+				log.Println("Created nil surface on ", line)
 			}
 			s.SetSourceSurface(surf, 0, pos.Y)
 			s.Paint()
@@ -166,7 +171,7 @@ func (self *Editor) drawLines(s *view.Surface) {
 	}
 }
 
-func (self *Editor) drawLine(s *view.Surface, line []tokenizer.Character) *view.Surface {
+func (self *Editor) drawLine(s *view.Surface, line tokenizer.Line) *view.Surface {
 	b, extents := self.lineBounds(s, line)
 	style := self.Style()
 	ce := extents.Extents('M')
@@ -176,29 +181,33 @@ func (self *Editor) drawLine(s *view.Surface, line []tokenizer.Character) *view.
 	extents = self.applyTextStyle(surf, style)
 
 	var ts *TokenStyle
-	for col := 0; col < len(line); col++ {
-		c := &line[col]
+	for col := 0; col < len(line.Characters); col++ {
+		c := &line.Characters[col]
+		var bounds Bounds
 		y := ce.Height + (ce.Height / 3)
 		switch c.Token.Type {
 
 		case tokenizer.NEWLINE:
 			self.drawWhitespace(surf, 182, b)
-			c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{se.Xadvance, y}}
+			bounds = Bounds{Point: Point{b.X, y}, Size: Size{se.Xadvance, y}}
 			b.X += se.Xadvance
+			line.Bounds[col] = bounds
 			continue
 
 		case tokenizer.SPACE:
 			self.drawWhitespace(surf, 183, b)
-			c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{se.Xadvance, y}}
+			bounds = Bounds{Point: Point{b.X, y}, Size: Size{se.Xadvance, y}}
 			b.X += se.Xadvance
+			line.Bounds[col] = bounds
 			continue
 
 		case tokenizer.TAB:
 			// TODO - proper non-monospace tab support
 			self.drawWhitespace(s, 166, b)
 			advance := float64(self.TabWidth-(col%self.TabWidth)) * se.Xadvance
-			c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{advance, y}}
+			bounds = Bounds{Point: Point{b.X, y}, Size: Size{advance, y}}
 			b.X = math.Floor(b.X+advance) + ALIGN
+			line.Bounds[col] = bounds
 			continue
 
 		case tokenizer.IDENTIFIER:
@@ -223,21 +232,21 @@ func (self *Editor) drawLine(s *view.Surface, line []tokenizer.Character) *view.
 		e := extents.Extents(c.Rune)
 		surf.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
 		surf.SetSourceRGBA(ts.Color)
-
 		surf.DrawRune(c.Rune, b.X, y)
-		c.Bounds = &Bounds{Point: Point{b.X, y}, Size: Size{e.Xadvance, y}}
+		bounds = Bounds{Point: Point{b.X, y}, Size: Size{e.Xadvance, y}}
 		b.X = math.Floor(b.X+e.Xadvance) + ALIGN
+		line.Bounds[col] = bounds
 	}
 	return surf
 }
 
-func (self *Editor) lineBounds(s *view.Surface, line []tokenizer.Character) (Bounds, *extents) {
+func (self *Editor) lineBounds(s *view.Surface, line tokenizer.Line) (Bounds, *extents) {
 	style := self.Style()
 	extents := self.applyTextStyle(s, style)
 	b := Bounds{Point: Point{X: ALIGN, Y: ALIGN}, Size: Size{Width: 0, Height: 0}}
 	se := extents.Extents(' ')
-	for col := 0; col < len(line); col++ {
-		c := &line[col]
+	for col := 0; col < len(line.Characters); col++ {
+		c := &line.Characters[col]
 		e := extents.Extents(c.Rune)
 		if e.Height > b.Height {
 			b.Height = (e.Height - e.Ybearing)
@@ -292,12 +301,20 @@ func (self *Editor) drawCursors(s *view.Surface) {
 	for _, cursor := range self.Cursors {
 		if cursor.Line < len(self.Lines) {
 			line := self.Lines[cursor.Line]
-			if cursor.Column < len(line) {
-				c := line[cursor.Column]
-				cursor.Draw(s, c.Bounds, self)
+			if cursor.Column <= len(line.Characters) {
+				b := line.Bounds[cursor.Column]
+				// if c.Bounds == nil {
+				// 	fmt.Println(c, cursor.Line, cursor.Column, "is nil bounded")
+				// }
+				cursor.Draw(s, &b, self)
 			}
 		}
 	}
+}
+
+func (self *Editor) removeLineSurface(line int) {
+	self.destroyLineSurface(line)
+	self.lineSurfaces = append(self.lineSurfaces[:line], self.lineSurfaces[line+1:]...)
 }
 
 func (self *Editor) destroyLineSurface(line int) {
@@ -309,4 +326,10 @@ func (self *Editor) destroyLineSurface(line int) {
 		s.Destroy()
 		self.lineSurfaces[line] = nil
 	}
+}
+
+func (self *Editor) SetText(text string) {
+	lines := tokenizer.ToLines(self.Tokenizer.Tokenize(text))
+	self.Lines = lines
+	self.Text = text
 }

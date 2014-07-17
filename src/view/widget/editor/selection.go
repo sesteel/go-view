@@ -10,6 +10,7 @@ import (
 	"view"
 	"view/color"
 	"view/event"
+	"view/tokenizer"
 )
 
 // Selection represents a character range where text has been
@@ -30,7 +31,7 @@ func (self Selection) IndexInSelection(i Index) bool {
 	return false
 }
 
-func (self Selection) drawCharBG(s *view.Surface, lines Lines, i Index, x, y, w, h float64) {
+func (self Selection) drawCharBG(s *view.Surface, lines tokenizer.Line, i Index, x, y, w, h float64) {
 	w += 2
 	h += 1
 	s.Save()

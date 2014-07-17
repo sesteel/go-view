@@ -6,11 +6,12 @@
 package editor
 
 import (
-	// "fmt"
+	"log"
 	"time"
 	"view"
 	"view/color"
 	"view/common"
+	"view/tokenizer"
 )
 
 type CursorType int
@@ -31,13 +32,13 @@ type Cursor struct {
 	Color *color.RGBA
 }
 
-func (self Cursor) PreviousPos(lines Lines) Index {
+func (self Cursor) PreviousPos(lines []tokenizer.Line) Index {
 	if len(lines) < self.Line-1 || self.Line < 0 {
 		return Index(self.Index)
 	}
 
 	if self.Column == 0 {
-		return Index{self.Line - 1, len(lines[self.Line-1])}
+		return Index{self.Line - 1, len(lines[self.Line-1].Characters)}
 	} else {
 		return Index{self.Line, self.Column - 1}
 	}
@@ -57,6 +58,10 @@ func (self *Cursor) Draw(s *view.Surface, b *common.Bounds, e *Editor) {
 	for i, surface := range surfaces {
 		if i == self.Line {
 			break
+		}
+
+		if surface == nil {
+			log.Println("Cursor cannot draw on nil surface... ", self)
 		}
 
 		if i >= offset {
@@ -124,8 +129,9 @@ func (self *Cursor) Draw(s *view.Surface, b *common.Bounds, e *Editor) {
 		}
 		s.SetSourceRGBA(*self.Color)
 		s.SetLineWidth(1)
-		s.RoundedRectangle(b.X+ALIGN, y-b.Height+ALIGN, b.Width+ALIGN, b.Height+b.Height/2, 3, 3, 3, 3)
+		s.RoundedRectangle(b.X, y-b.Height+ALIGN, b.Width, b.Height+b.Height/2, 3, 3, 3, 3)
 		s.Stroke()
+		// fmt.Println(b.X+ALIGN, y-b.Height+ALIGN, b.Width+ALIGN, b.Height+b.Height/2)
 
 	case UNDERLINE:
 		if time.Now().Nanosecond() < 450000000 {

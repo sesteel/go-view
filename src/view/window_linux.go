@@ -357,11 +357,13 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 		s1 := NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
 		for {
+			since := time.Now()
 			if window.dirty {
 				window.dirty = false
 				s1.Destroy()
 				s1 = NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
 				window.Draw(s1)
+				fmt.Println("time to render:", time.Since(since))
 			}
 
 			s2 := NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
@@ -377,7 +379,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 			if DEBUG_DRAW_ALL {
 				if time.Since(before).Seconds() >= 1 {
-					if count < 65 {
+					if count < 60 {
 						fmt.Println("FPS:", count)
 					}
 					count = 0
@@ -388,7 +390,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			}
 
 			C.XFlush(window.display)
-			time.Sleep(time.Millisecond * 15)
+			time.Sleep(time.Millisecond * 16)
 		}
 	}
 	window.drawloop = drawloop
