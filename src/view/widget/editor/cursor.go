@@ -28,8 +28,10 @@ const (
 // Cursor is used to store the position of the cursor via a Index.
 type Cursor struct {
 	Index
-	Type  CursorType
-	Color *color.RGBA
+	Type     CursorType
+	Color    *color.RGBA
+	lastedit int
+	wait     int
 }
 
 func (self Cursor) PreviousPos(lines []tokenizer.Line) Index {
@@ -47,6 +49,7 @@ func (self Cursor) PreviousPos(lines []tokenizer.Line) Index {
 func (self *Cursor) Draw(s *view.Surface, b *common.Bounds, e *Editor) {
 	offset := int(e.vscroll.Offset())
 	surfaces := e.lineSurfaces
+	now := time.Now().Nanosecond()
 
 	// the cursor is not visible
 	if offset > self.Line || b == nil {
@@ -71,80 +74,69 @@ func (self *Cursor) Draw(s *view.Surface, b *common.Bounds, e *Editor) {
 
 	y := b.Y + yoff
 
+	blink := func(max float64) {
+		if now < 450000000 {
+			self.Color.A = 0
+		} else {
+			self.Color.A = max
+		}
+	}
+
+	prepare := func() {
+		s.SetSourceRGBA(*self.Color)
+		s.SetLineWidth(1)
+	}
+
 	// fade
 	switch self.Type {
 
 	case BAR:
 		self.Color.A = 1
-		s.SetSourceRGBA(*self.Color)
-		s.SetLineWidth(1)
+		prepare()
 		s.MoveTo(b.X, y-b.Height)
 		s.LineTo(b.X, y+b.Height/2)
 		s.Stroke()
 
 	case BLINK:
-		if time.Now().Nanosecond() < 450000000 {
-			self.Color.A = 0
-		} else {
-			self.Color.A = 1
-		}
-		s.SetSourceRGBA(*self.Color)
-		s.SetLineWidth(1)
+		blink(1)
+		prepare()
 		s.MoveTo(b.X, y-b.Height)
 		s.LineTo(b.X, y+b.Height/2)
 		s.Stroke()
 
 	case BLOCK:
-		if time.Now().Nanosecond() < 450000000 {
-			self.Color.A = 0
-		} else {
-			self.Color.A = 0.5
-		}
-		s.SetSourceRGBA(*self.Color)
-		s.SetLineWidth(1)
+		blink(0.5)
+		prepare()
 		s.RoundedRectangle(b.X+ALIGN, y-b.Height+ALIGN, b.Width, b.Height+b.Height/2, 1, 1, 1, 1)
 		s.Fill()
 		s.RoundedRectangle(b.X+ALIGN, y-b.Height+ALIGN, b.Width, b.Height+b.Height/2, 1, 1, 1, 1)
 		s.Stroke()
 
 	case FADE:
-		if time.Now().Nanosecond() < 300000000 {
+		if now < 300000000 {
 			self.Color.A += 0.05
-		} else if time.Now().Nanosecond() < 600000000 {
+		} else if now < 600000000 {
 			self.Color.A = 1
 		} else if self.Color.A > 0 {
 			self.Color.A -= 0.05
 		}
-		s.SetSourceRGBA(*self.Color)
-		s.SetLineWidth(1)
+		prepare()
 		s.MoveTo(b.X, y-b.Height)
 		s.LineTo(b.X, y+b.Height/2)
 		s.Stroke()
 
 	case OUTLINE:
-		if time.Now().Nanosecond() < 450000000 {
-			self.Color.A = 0
-		} else {
-			self.Color.A = 0.7
-		}
-		s.SetSourceRGBA(*self.Color)
-		s.SetLineWidth(1)
-		s.RoundedRectangle(b.X, y-b.Height+ALIGN, b.Width, b.Height+b.Height/2, 3, 3, 3, 3)
+		blink(0.7)
+		prepare()
+		s.RoundedRectangle(b.X, y-b.Height+ALIGN, b.Width, b.Height+b.Height/2, 2, 2, 2, 2)
 		s.Stroke()
-		// fmt.Println(b.X+ALIGN, y-b.Height+ALIGN, b.Width+ALIGN, b.Height+b.Height/2)
 
 	case UNDERLINE:
-		if time.Now().Nanosecond() < 450000000 {
-			self.Color.A = 0
-		} else {
-			self.Color.A = 1
-		}
-		s.SetSourceRGBA(*self.Color)
-		s.SetLineWidth(1)
+		blink(1)
+		prepare()
 		s.MoveTo(b.X, y+ALIGN+b.Height/2)
 		s.LineTo(b.X+b.Width, y+ALIGN+b.Height/2)
 		s.Stroke()
 	}
 	s.Flush()
-
 }

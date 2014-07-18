@@ -211,8 +211,8 @@ func (self *Editor) DeleteCharBeforeCursors() {
 	self.AtEachCursor(func(c *Cursor) {
 		if c.Column > 0 {
 			pos := self.Lines[c.Line].Characters[c.Column].Index
-			self.Text = self.Text[:pos-1] + self.Text[pos:]
-			self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.Text))
+			self.text = self.text[:pos-1] + self.text[pos:]
+			self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.text))
 			c.Column--
 			self.destroyLineSurface(c.Line)
 		} else {
@@ -221,7 +221,7 @@ func (self *Editor) DeleteCharBeforeCursors() {
 			} else {
 				col := len(self.Lines[c.Line-1].Characters) - 1
 				pos := self.Lines[c.Line-1].Characters[col].Index
-				self.SetText(self.Text[:pos] + self.Text[pos+1:])
+				self.SetText(self.text[:pos] + self.text[pos+1:])
 				self.removeLineSurface(c.Line)
 				c.Line--
 				self.destroyLineSurface(c.Line)
@@ -239,8 +239,8 @@ func (self *Editor) DeleteCharAfterCursors() {
 			return
 		}
 		pos := self.Lines[c.Line].Characters[c.Column].Index
-		self.Text = self.Text[:pos] + self.Text[pos+1:]
-		self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.Text))
+		self.text = self.text[:pos] + self.text[pos+1:]
+		self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.text))
 		self.destroyLineSurface(c.Line)
 	})
 }
@@ -251,8 +251,8 @@ func (self *Editor) InsertCharAtCursors(r rune) {
 	self.AtEachCursor(func(c *Cursor) {
 		// log.Println(string(r))
 		pos := self.Lines[c.Line].Characters[c.Column].Index
-		self.Text = self.Text[:pos] + string(r) + self.Text[pos:]
-		self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.Text))
+		self.text = self.text[:pos] + string(r) + self.text[pos:]
+		self.Lines = tokenizer.ToLines(self.Tokenizer.Tokenize(self.text))
 		if r == '\n' {
 			c.Column = 0
 			c.Line++

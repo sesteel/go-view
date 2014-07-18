@@ -103,8 +103,10 @@ func main() {
 	tb.Primitives["uintptr"] = true
 
 	tb.DrawWhitespace = false
+
 	// tb.SetFocus(true)
 	l.SetChild(tb)
+	tb.Invalidate()
 	win.SetLayout(l)
 	win.Start()
 	<-waitOnExit

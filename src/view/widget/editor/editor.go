@@ -34,7 +34,7 @@ type Error Range
 type Editor struct {
 	view.DefaultComponent
 	Tokenizer       tokenizer.Tokenizer
-	Text            string // TODO Consider how to optimize this away as it gets created repeatedly
+	text            string // TODO Consider how to optimize this away as it gets created repeatedly
 	Lines           []tokenizer.Line
 	MarginColumn    int
 	DrawMargin      bool
@@ -100,7 +100,7 @@ func New(parent view.View, name string, text string) *Editor {
 	}
 
 	blue := color.Blue4
-	e.Cursors = append(e.Cursors, &Cursor{Index{0, 0}, OUTLINE, &blue})
+	e.Cursors = append(e.Cursors, &Cursor{Index{0, 0}, OUTLINE, &blue, 0, 0})
 
 	e.vscroll = scroll.NewVerticalScroll(e)
 	e.vscroll.Style().SetForeground(color.Blue5.Alpha(.15))
@@ -203,6 +203,7 @@ func (self *Editor) drawLine(s *view.Surface, line tokenizer.Line) *view.Surface
 
 		case tokenizer.TAB:
 			// TODO - proper non-monospace tab support
+			// TODO - mulitple sequential tabs behave strangely
 			self.drawWhitespace(s, 166, b)
 			advance := float64(self.TabWidth-(col%self.TabWidth)) * se.Xadvance
 			bounds = Bounds{Point: Point{b.X, y}, Size: Size{advance, y}}
@@ -312,6 +313,15 @@ func (self *Editor) drawCursors(s *view.Surface) {
 	}
 }
 
+// Invalidate causes all editor caches to empty
+// and the widget to completely redraw itself.
+func (self *Editor) Invalidate() {
+	for i, _ := range self.lineSurfaces {
+		self.destroyLineSurface(i)
+	}
+	self.Redraw()
+}
+
 func (self *Editor) removeLineSurface(line int) {
 	self.destroyLineSurface(line)
 	self.lineSurfaces = append(self.lineSurfaces[:line], self.lineSurfaces[line+1:]...)
@@ -331,5 +341,5 @@ func (self *Editor) destroyLineSurface(line int) {
 func (self *Editor) SetText(text string) {
 	lines := tokenizer.ToLines(self.Tokenizer.Tokenize(text))
 	self.Lines = lines
-	self.Text = text
+	self.text = text
 }

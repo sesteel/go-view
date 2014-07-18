@@ -10,6 +10,7 @@ package view
 // #cgo pkg-config: cairo x11
 // #include <X11/Xlib.h>
 // #include <X11/Xutil.h>
+// #include <X11/Xatom.h>
 // #include <X11/Xresource.h>
 // #include <X11/keysymdef.h>
 // #include <cairo/cairo-xlib.h>
@@ -23,6 +24,7 @@ import "C"
 import (
 	//	"errors"
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"runtime"
@@ -54,11 +56,20 @@ type Window struct {
 	height      float64
 }
 
+type hints struct {
+	flags       C.ulong
+	functions   C.ulong
+	decorations C.ulong
+	inputMode   C.long
+	status      C.ulong
+}
+
 func (self *Window) Parent() View {
 	return nil
 }
 
 func (self *Window) Start() {
+	self.Draw(self.Surface())
 	go self.eventLoop()
 	go self.drawloop()
 }
@@ -123,22 +134,31 @@ func (self *Window) Animate(s *Surface) {
 	self.layout.Animate(s)
 }
 
-// func NewBorderlessWindow(name string, x, y, w, h uint) *Window {
-// 	window := NewWindow(name, x, y, w, h)
-
-// 	// var mwmhints C.Atom
-// 	// var hints C.MwmHints
-// 	//// #include <Xll/X.h>
-// 	//// #include <X11/Xm/MwmUtil.h>
-// 	// internal atom that we are looking for
-// 	mwmhints := C.XInternAtom(window.display, C._XA_MWM_HINTS, C.False)
-// 	// hints = (MwmHints *)malloc(sizeof(MwmHints));
-// 	hints.decorations = 0
-// 	hints.flags |= MWM_HINTS_DECORATIONS
-// 	C.XChangeProperty(window.display, window.xwindow, mwmhints, mwmhints, 32, PropModeReplace, hints, 4)
-// 	C.XFlush(window.display)
-// 	return window
-// }
+//
+func NewBorderlessWindow(name string, x, y, w, h uint) *Window {
+	/*
+		Going to full screen
+		XF86VidModeSwitchToMode(display,defaultscreen,video_mode);
+		XF86VidModeSetViewPort(display,DefaultScreen,0,0);
+		XMoveResizeWindow(display,window,0,0,width,height);
+		XMapRaised(display,window);
+		XGrabPointer(display,window,True,0,GrabModeAsync,GrabModeAsync,window,0L,CurrentTime);
+		XGrabKeyboard(display,window,False,GrabModeAsync,GrabModeAsync,CurrentTime);
+	*/
+	window := NewWindow(name, x, y, w, h)
+	var hint hints
+	hint.flags = 2       // changing window decorations.
+	hint.decorations = 0 // remove window decorations
+	n := C.CString("_MOTIF_WM_HINTS")
+	defer C.free(unsafe.Pointer(n))
+	property := C.XInternAtom(window.display, n, C.True)
+	if property == 0 {
+		log.Println("Could not create borderless window")
+	}
+	C.XChangeProperty(window.display, window.xwindow, property, property, 32, C.PropModeReplace, (*C.uchar)(unsafe.Pointer(&hint)), 5)
+	C.XFlush(window.display)
+	return window
+}
 
 func NewWindow(name string, x, y, w, h uint) *Window {
 	var width C.uint = C.uint(w)
