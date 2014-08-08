@@ -6,24 +6,24 @@
 package view
 
 import (
-	"fmt"
 	"view/color"
 	. "view/common"
 	"view/tokenizer"
 )
 
-func (self *Surface) DrawTextToken(tkn *tokenizer.Token, bounds Bounds, style Style) {
-	if tkn.Selected {
+func (self *Surface) DrawTextToken(t *tokenizer.Token, f *Font, b Bounds, c color.RGBA) {
+	if t.Selected {
 		self.SetSourceRGBA(color.Selection)
-		self.Rectangle(bounds.X, bounds.Y, bounds.Width, bounds.Height)
+		self.Rectangle(b.X, b.Y, b.Width, b.Height)
 		self.Fill()
 	}
 
-	self.SelectFontFace(style.FontName(), style.FontSlant(), style.FontWeight())
-	self.SetFontSize(style.FontSize())
-	self.SetSourceRGBA(style.Foreground())
-	self.MoveTo(bounds.X, bounds.Y)
-	self.ShowText(tkn.Value)
+	if f != nil {
+		f.Configure(self)
+	}
+	self.SetSourceRGBA(c)
+	self.MoveTo(b.X, b.Y)
+	self.ShowText(t.Value)
 }
 
 var EXTENTS map[string]*TextExtents = make(map[string]*TextExtents)
@@ -32,28 +32,26 @@ var EXTENTS map[string]*TextExtents = make(map[string]*TextExtents)
 // ascii formatted text within the bounds.  It stops rendering at last visible
 // line, but continues to calculate total height.
 // returns height
-func (self *Surface) DrawWrappedPlainText(tokens []*tokenizer.Token, bounds Bounds, offset ScrollOffset, style Style) (linesDrawn, lines, height float64) {
-	bounds.X += style.PaddingLeft()
-	bounds.Y += style.PaddingTop()
-	bounds.Width -= (style.PaddingLeft() + style.PaddingRight())
-	bounds.Height -= (style.PaddingTop() + style.PaddingBottom())
+func (self *Surface) DrawWrappedPlainText(ts []*tokenizer.Token, b Bounds, o ScrollOffset, p Paddings, tabwidth int, f Font, c color.RGBA) (linesDrawn, lines, height float64) {
+	b.X += p.Left
+	b.Y += p.Top
+	b.Width -= (p.Left + p.Right)
+	b.Height -= (p.Top + p.Bottom)
 
 	var lineHeight, x, y float64 = 0, 0, 0
 
-	self.SelectFontFace(style.FontName(), style.FontSlant(), style.FontWeight())
-	self.SetFontSize(style.FontSize())
-	self.SetSourceRGBA(style.Foreground())
+	f.Configure(self)
+	self.SetSourceRGBA(c)
 
 	spaceExtents := self.TextExtents("M")
 	y += spaceExtents.Height
 	spaceExtents.Width *= 1
 	spaceExtents.Height *= 1.75
 
-	self.SetFontOptions(defaultFontOptions)
 	selected := make([]*tokenizer.Token, 0)
 
-	for i := 0; i < len(tokens); i++ {
-		t := tokens[i]
+	for i := 0; i < len(ts); i++ {
+		t := ts[i]
 		e := EXTENTS[t.Value]
 		if e == nil {
 			e = self.TextExtents(t.Value)
@@ -62,7 +60,7 @@ func (self *Surface) DrawWrappedPlainText(tokens []*tokenizer.Token, bounds Boun
 
 		if t.Value == "\n" {
 			x = 0
-			if ScrollOffset(lines) >= offset {
+			if ScrollOffset(lines) >= o {
 				y += spaceExtents.Height
 			}
 			lines++
@@ -70,7 +68,7 @@ func (self *Surface) DrawWrappedPlainText(tokens []*tokenizer.Token, bounds Boun
 		}
 
 		if t.Value == "\t" {
-			x += spaceExtents.Width * float64(style.TabWidth())
+			x += spaceExtents.Width * float64(tabwidth)
 			continue
 		}
 
@@ -78,45 +76,45 @@ func (self *Surface) DrawWrappedPlainText(tokens []*tokenizer.Token, bounds Boun
 			lineHeight = e.Height
 		}
 
-		if x+e.Width > bounds.Width {
+		if x+e.Width > b.Width {
 
-			if ScrollOffset(lines) >= offset {
+			if ScrollOffset(lines) >= o {
 				y += spaceExtents.Height
 			}
 			x = 0
 			lines++
 		}
 
-		var b Bounds
-		b.X = bounds.X + x
-		b.Y = bounds.Y + y
-		b.Width = e.Xadvance - b.X
-		b.Height = e.Yadvance - b.Y
+		var b2 Bounds
+		b2.X = b.X + x
+		b2.Y = b.Y + y
+		b2.Width = e.Xadvance - b2.X
+		b2.Height = e.Yadvance - b2.Y
 
 		if t.Selected {
 			selected = append(selected, t)
 		}
 
-		if y < bounds.Height && ScrollOffset(lines) >= offset {
-			linesDrawn = float64(lines) - float64(offset)
-			self.DrawTextToken(t, b, style)
+		if y < b.Height && ScrollOffset(lines) >= o {
+			linesDrawn = float64(lines) - float64(o)
+			self.DrawTextToken(t, nil, b2, c)
 		}
 
 		x += e.Xadvance
 		y += e.Yadvance
 	}
 
-	return linesDrawn, lines, y + style.PaddingBottom()
+	return linesDrawn, lines, y + p.Bottom
 }
 
-func (self *Surface) DrawVerticalOverflow2(rows, shown, percent float64, s Style) {
+func (self *Surface) DrawVerticalOverflow2(rows, shown, percent float64, oy OverflowY) {
 	if rows <= 0 || shown <= 0 {
 		rows = 1
 		shown = 1
 	}
 
-	switch s.OverflowY() {
-	case STYLE_OVERFLOW_Y_SCROLL:
+	switch oy {
+	case OVERFLOW_Y_SCROLL:
 		self.SetSourceRGBA(color.HexRGBA(0x00000007))
 		self.Rectangle(float64(self.Width())-10, 0, float64(self.Width()), float64(self.Height()))
 		self.Fill()
@@ -125,26 +123,25 @@ func (self *Surface) DrawVerticalOverflow2(rows, shown, percent float64, s Style
 		if height < 5 {
 			height = 15
 		}
-		fmt.Println("::: ", self.Width(), height, percent)
 		self.SetSourceRGBA(color.HexRGBA(0x00000011))
 		self.RoundedRectangle(float64(self.Width())-10, percent*(float64(self.Height())-height), 10, height, 2, 2, 2, 2)
 		self.Fill()
 	}
 }
 
-func (self *Surface) DrawVerticalOverflow(boundsHeight, height, percent float64, s Style) {
+func (self *Surface) DrawVerticalOverflow(boundsHeight, height, percent float64, oy OverflowY) {
 	if height < 5 {
 		height = 15
 	}
-	switch s.OverflowY() {
-	case STYLE_OVERFLOW_Y_SCROLL:
+	switch oy {
+	case OVERFLOW_Y_SCROLL:
 		self.SetSourceRGBA(color.HexRGBA(0x00000025))
 		self.RoundedRectangle(float64(self.Width())-11, percent, 10, height, 2, 2, 2, 2)
 		self.Fill()
 	}
 }
 
-func (self *Surface) DrawHorizontalOverflow(boundsWidth float64, s Style) {
+func (self *Surface) DrawHorizontalOverflow(boundsWidth float64) {
 	ratio := float64(self.Width()) / boundsWidth
 	self.SetSourceRGBA(color.HexRGBA(0x00000025))
 	self.RoundedRectangle(float64(self.Height())-10, 50, 10, float64(self.Width())*ratio, 2, 2, 2, 2)

@@ -184,17 +184,17 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 		sliceHeader.Len = int(nxvisuals)
 		sliceHeader.Data = uintptr(unsafe.Pointer(&visual_list))
 
-		for i := 0; i < len(visualList); i++ {
-			if uint(visualList[i].depth) > 8 {
-				fmt.Printf("  %d: visual:%d class:%d TrueColor:%t depth:%d\n", i, int(visualList[i].visualid), visualList[i].class, bool(visualList[i].class == C.TrueColor), uint(visualList[i].depth))
-			}
-		}
+		// for i := 0; i < len(visualList); i++ {
+		// 	if uint(visualList[i].depth) > 8 {
+		// 		log.Printf("  %d: visual:%d class:%d TrueColor:%t depth:%d\n", i, int(visualList[i].visualid), visualList[i].class, bool(visualList[i].class == C.TrueColor), uint(visualList[i].depth))
+		// 	}
+		// }
 	}
 
 	var vinfo C.XVisualInfo
 	result := C.XMatchVisualInfo(dpy, C.XDefaultScreen(dpy), 24, C.TrueColor, &vinfo)
 	if result == 0 {
-		fmt.Println("Cannot create display at desired depth of 24.")
+		log.Println("Cannot create display at desired depth of 24.")
 	}
 
 	var attr C.XSetWindowAttributes
@@ -215,7 +215,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	/* we use these bits of info enough to want them in their own variables */
 	screen_num := C.XDefaultScreen(dpy)
 
-	win := C.XCreateWindow(dpy, C.XDefaultRootWindow(dpy), 0, 0, width, height, 0, vinfo.depth, C.InputOutput, vinfo.visual, C.CWColormap|C.CWBorderPixel, &attr)
+	win := C.XCreateWindow(dpy, C.XDefaultRootWindow(dpy), C.int(x), C.int(y), width, height, 0, vinfo.depth, C.InputOutput, vinfo.visual, C.CWColormap|C.CWBorderPixel, &attr)
 
 	C.XSync(dpy, C.True)
 
@@ -251,7 +251,6 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 	window.width = float64(width)
 	window.height = float64(height)
 	window.layout = nil
-	window.style = NewStyle()
 
 	window.SetName(name)
 	runtime.SetFinalizer(window, func(w *Window) {
@@ -394,7 +393,6 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			window.surface.SetSourceSurface(s2, 0, 0)
 			window.surface.Paint()
 			window.surface.Flush()
-
 			s2.Destroy()
 
 			if DEBUG_DRAW_ALL {
@@ -410,7 +408,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			}
 
 			C.XFlush(window.display)
-			time.Sleep(time.Millisecond * 16)
+			time.Sleep(time.Millisecond * 10)
 		}
 	}
 	window.drawloop = drawloop

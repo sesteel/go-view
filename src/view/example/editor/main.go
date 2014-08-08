@@ -11,12 +11,12 @@ import (
 	"os"
 	"runtime/pprof"
 	"view"
-	"view/color"
+	// "view/color"
 	"view/event"
 	"view/event/key"
 	"view/layout"
-	"view/tokenizer/golang"
-	"view/widget/editor"
+	// "view/tokenizer/golang"
+	"view/widget/text"
 )
 
 var prof = flag.String("prof", "", "write cpu profile to file")
@@ -24,11 +24,11 @@ var prof = flag.String("prof", "", "write cpu profile to file")
 func main() {
 	flag.Parse()
 	var waitOnExit chan bool
-	win := view.NewWindow("Editor Example", 0, 0, 600, 300)
-	win.SetSize(800, 1000)
+	win := view.NewWindow("Editor Example", 700, 100, 600, 300)
+	win.SetSize(870, 500)
 	l := layout.NewFill(win)
 
-	tb := editor.New(win, "editor", TEXT)
+	tb := text.NewMultiLineLatin(win, "editor", TEXT)
 
 	if *prof != "" {
 		f, err := os.Create(*prof)
@@ -43,10 +43,10 @@ func main() {
 		})
 	}
 
-	tb.KeywordStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Blue4}
-	tb.StringStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Green2}
-	tb.PrimitiveStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_ITALIC, color.Purple1}
-	tb.Tokenizer = golang.New()
+	// tb.Style.KeywordStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Blue4}
+	// tb.Style.StringStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Green2}
+	// tb.Style.PrimitiveStyle = editor.TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_ITALIC, color.Purple1}
+	// tb.Tokenizer = golang.New()
 
 	/*
 		break        default      func         interface    select
@@ -55,58 +55,58 @@ func main() {
 		const        fallthrough  if           range        type
 		continue     for          import       return       var
 	*/
-	tb.Keywords["func"] = true
-	tb.Keywords["type"] = true
-	tb.Keywords["break"] = true
-	tb.Keywords["default"] = true
-	tb.Keywords["case"] = true
-	tb.Keywords["chan"] = true
-	tb.Keywords["const"] = true
-	tb.Keywords["continue"] = true
-	tb.Keywords["defer"] = true
-	tb.Keywords["else"] = true
-	tb.Keywords["fallthrough"] = true
-	tb.Keywords["for"] = true
-	tb.Keywords["go"] = true
-	tb.Keywords["goto"] = true
-	tb.Keywords["if"] = true
-	tb.Keywords["import"] = true
-	tb.Keywords["interface"] = true
-	tb.Keywords["map"] = true
-	tb.Keywords["package"] = true
-	tb.Keywords["range"] = true
-	tb.Keywords["return"] = true
-	tb.Keywords["select"] = true
-	tb.Keywords["struct"] = true
-	tb.Keywords["switch"] = true
-	tb.Keywords["type"] = true
-	tb.Keywords["var"] = true
+	// tb.Keywords["func"] = true
+	// tb.Keywords["type"] = true
+	// tb.Keywords["break"] = true
+	// tb.Keywords["default"] = true
+	// tb.Keywords["case"] = true
+	// tb.Keywords["chan"] = true
+	// tb.Keywords["const"] = true
+	// tb.Keywords["continue"] = true
+	// tb.Keywords["defer"] = true
+	// tb.Keywords["else"] = true
+	// tb.Keywords["fallthrough"] = true
+	// tb.Keywords["for"] = true
+	// tb.Keywords["go"] = true
+	// tb.Keywords["goto"] = true
+	// tb.Keywords["if"] = true
+	// tb.Keywords["import"] = true
+	// tb.Keywords["interface"] = true
+	// tb.Keywords["map"] = true
+	// tb.Keywords["package"] = true
+	// tb.Keywords["range"] = true
+	// tb.Keywords["return"] = true
+	// tb.Keywords["select"] = true
+	// tb.Keywords["struct"] = true
+	// tb.Keywords["switch"] = true
+	// tb.Keywords["type"] = true
+	// tb.Keywords["var"] = true
 
-	tb.Primitives["int"] = true
-	tb.Primitives["int8"] = true
-	tb.Primitives["int16"] = true
-	tb.Primitives["int32"] = true
-	tb.Primitives["int64"] = true
-	tb.Primitives["uint"] = true
-	tb.Primitives["uint8"] = true
-	tb.Primitives["uint16"] = true
-	tb.Primitives["uint32"] = true
-	tb.Primitives["uint64"] = true
-	tb.Primitives["float32"] = true
-	tb.Primitives["float64"] = true
-	tb.Primitives["string"] = true
-	tb.Primitives["rune"] = true
-	tb.Primitives["bool"] = true
-	tb.Primitives["byte"] = true
-	tb.Primitives["complex64"] = true
-	tb.Primitives["complex128"] = true
-	tb.Primitives["uintptr"] = true
+	// tb.Primitives["int"] = true
+	// tb.Primitives["int8"] = true
+	// tb.Primitives["int16"] = true
+	// tb.Primitives["int32"] = true
+	// tb.Primitives["int64"] = true
+	// tb.Primitives["uint"] = true
+	// tb.Primitives["uint8"] = true
+	// tb.Primitives["uint16"] = true
+	// tb.Primitives["uint32"] = true
+	// tb.Primitives["uint64"] = true
+	// tb.Primitives["float32"] = true
+	// tb.Primitives["float64"] = true
+	// tb.Primitives["string"] = true
+	// tb.Primitives["rune"] = true
+	// tb.Primitives["bool"] = true
+	// tb.Primitives["byte"] = true
+	// tb.Primitives["complex64"] = true
+	// tb.Primitives["complex128"] = true
+	// tb.Primitives["uintptr"] = true
 
-	tb.DrawWhitespace = false
+	// tb.DrawWhitespace = false
 
 	// tb.SetFocus(true)
 	l.SetChild(tb)
-	tb.Invalidate()
+	// tb.Invalidate()
 	win.SetLayout(l)
 	win.Start()
 	<-waitOnExit

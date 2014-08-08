@@ -441,6 +441,11 @@ func (self *Surface) ClipRectangleList() ([]Rectangle, Status) {
 ///////////////////////////////////////////////////////////////////////////////
 // Font/Text methods
 
+func (self *Surface) SelectFont(f Font) {
+	self.SelectFontFace(f.Name, f.Slant, f.Weight)
+	self.SetFontSize(f.Size)
+}
+
 func (self *Surface) SelectFontFace(name string, font_slant_t, font_weight_t int) {
 	s := C.CString(name)
 	C.cairo_select_font_face(self.context, s, C.cairo_font_slant_t(font_slant_t), C.cairo_font_weight_t(font_weight_t))

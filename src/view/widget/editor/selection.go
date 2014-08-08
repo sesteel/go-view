@@ -6,7 +6,7 @@
 package editor
 
 import (
-	// "fmt"
+	"log"
 	"view"
 	"view/color"
 	"view/event"
@@ -105,6 +105,7 @@ func (self Selection) drawCharBG(s *view.Surface, lines tokenizer.Line, i Index,
 
 func (self *Editor) handleScrollMapOffset(ev event.Mouse) event.Mouse {
 	if self.DrawScrollMap {
+		log.Println("smw:", self.scrollMap.Width)
 		ev.X -= self.scrollMap.Width
 	}
 	return ev
@@ -115,7 +116,7 @@ func (self *Editor) addTextSelectionBehavior() {
 	self.AddMouseButtonPressHandler(func(ev event.Mouse) {
 		switch ev.Button {
 		case event.MOUSE_BUTTON_LEFT:
-			ev := self.handleScrollMapOffset(ev)
+			// ev := self.handleScrollMapOffset(ev)
 			self.MoveCursor(float64(ev.X), float64(ev.Y))
 			kb := event.LastKeyboardState()
 			if kb.CtrlOnly() {
@@ -131,7 +132,7 @@ func (self *Editor) addTextSelectionBehavior() {
 		switch ev.Button {
 		case event.MOUSE_BUTTON_LEFT:
 			if self.Selection.Start.Line > -1 {
-				ev := self.handleScrollMapOffset(ev)
+				// ev := self.handleScrollMapOffset(ev)
 				idx := self.FindClosestIndex(ev.X, ev.Y)
 				l, _ := idx.Line, idx.Column
 				if l >= 0 {
@@ -144,7 +145,7 @@ func (self *Editor) addTextSelectionBehavior() {
 
 	self.AddMousePositionHandler(func(ev event.Mouse) {
 		if ev.LeftPressed {
-			ev := self.handleScrollMapOffset(ev)
+			// ev := self.handleScrollMapOffset(ev)
 			idx := self.FindClosestIndex(ev.X, ev.Y)
 			if idx.Line >= 0 && idx.Column >= 0 && self.Selection.Start.Line == -1 {
 				self.Selection.Start = idx

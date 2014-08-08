@@ -5,7 +5,9 @@
 // Copyright (c) 2014 Stanley Steel
 package event
 
-import ()
+import (
+	"view/common"
+)
 
 type MouseButton int8
 
@@ -32,6 +34,18 @@ type MouseState struct {
 type Mouse struct {
 	Button MouseButton
 	MouseState
+}
+
+func (self *Mouse) Normalize(offset common.Point) Mouse {
+	return Mouse{
+		self.Button,
+		MouseState{
+			self.LeftPressed,
+			self.MiddlePressed,
+			self.RightPressed,
+			self.X - offset.X,
+			self.Y - offset.Y},
+	}
 }
 
 type MouseNotifier interface {

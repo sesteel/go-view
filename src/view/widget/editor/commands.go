@@ -42,6 +42,7 @@ func (self *Editor) Select(start, end Index) {
 
 func (self *Editor) MoveCursor(x, y float64) {
 	idx := self.FindClosestIndex(x, y)
+
 	if idx.Line > -1 {
 		self.Cursors[0].Line = idx.Line
 		self.Cursors[0].Column = idx.Column
@@ -53,31 +54,41 @@ func (self *Editor) FindClosestIndex(x, y float64) Index {
 
 	findChar := func(x, y float64) bool {
 
-		for l := 0; l < len(self.Lines); l++ {
+		yoff := 0.0
+
+		for l := int(self.vscroll.Offset()); l < len(self.lineSurfaces); l++ {
 			// get the last char for sampling
 			linelen := len(self.Lines[l].Characters)
+			surface := self.lineSurfaces[l]
+			off := yoff + float64(surface.Height())
+
+			if off < y {
+				yoff = off
+				continue
+			}
+
 			// last := self.Lines[l].Characters[linelen-1]
 			lastBounds := self.Lines[l].Bounds[linelen-1]
-			if lastBounds.X != -1 && y >= lastBounds.Y && y <= lastBounds.Y+lastBounds.Height {
-				lx := lastBounds.X
-				if self.DrawScrollMap {
-					lx += self.scrollMap.Width
-				}
-				if x >= lastBounds.X+lastBounds.Width {
-					idx.Column = linelen - 1
+			log.Println("::::", x, y, lastBounds, off, yoff)
+			// if lastBounds.X != -1 {
+			// lx := lastBounds.X
+
+			if x >= lastBounds.X+lastBounds.Width {
+				idx.Column = linelen - 1
+				idx.Line = l
+				return true
+			}
+
+			for c := 0; c < linelen; c++ {
+				char := self.Lines[l].Bounds[c]
+				log.Println(char, y, y-yoff, yoff)
+				if char.Contains(x, y-yoff) {
+					idx.Column = c
 					idx.Line = l
 					return true
 				}
-
-				for c := 0; c < linelen; c++ {
-					char := self.Lines[l].Bounds[c]
-					if char.Contains(x, y) {
-						idx.Column = c
-						idx.Line = l
-						return true
-					}
-				}
 			}
+			// }
 		}
 		return false
 	}
@@ -86,13 +97,14 @@ func (self *Editor) FindClosestIndex(x, y float64) Index {
 	// Clicking in between lines of text will only seek
 	// 1000px upwards or downwards for a character to
 	// place the cursor at.
-	for i := 0; !findChar(x, y) && i < 200; i++ {
-		if y <= self.Style().PaddingTop() {
-			y += 5
-		} else {
-			y -= 5
-		}
-	}
+	findChar(x, y)
+	// for i := 0; !findChar(x, y) && i < 200; i++ {
+	// 	if y <= self.Style.Paddings.Top {
+	// 		y += 5
+	// 	} else {
+	// 		y -= 5
+	// 	}
+	// }
 
 	return idx
 }

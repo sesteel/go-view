@@ -29,22 +29,6 @@ func (self *CompositeView) Layout() Layout {
 }
 
 func (self *CompositeView) Draw(surface *Surface) {
-	// 1. save state
-	// 2. create clip
-	// 3. translate
-	// 4. draw
-	// 5. apply
-	// 6. translate back
-	// 7. pop
-	//	x, y := self.Position()
-	//	w, h := self.Size()
-	//	p := NewLinearPattern(x, y, x, h)
-	//	p.AddColorStop(0, color.Gray3)
-	//	p.AddColorStop(1, color.Gray3)
-	//	surface.Rectangle(x, y, w, h)
-	//	surface.SetSource(p)
-	//	surface.Fill()
-	//	p.Destroy()
 	self.layout.Draw(surface)
 }
 

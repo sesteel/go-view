@@ -1,5 +1,6 @@
-bin
-pkg
+bin/
+pkg/
+ext/
 .settings
 .project
 go-view.sublime-project

@@ -66,5 +66,6 @@ func ToLines(tkns []*Token) []Line {
 			line = Line{make([]Character, 0), make([]common.Bounds, 0)}
 		}
 	}
+	lines = append(lines, line)
 	return lines
 }

@@ -8,6 +8,8 @@ package scroll
 
 import (
 	"view"
+	"view/color"
+	"view/event"
 )
 
 type Scroll interface {
@@ -22,11 +24,34 @@ type Scroll interface {
 	Decrement()
 }
 
+type ScrollStyle struct {
+	TrackColor   color.RGBA
+	HandleColor  color.RGBA
+	HandleRadius float64
+}
+
+func NewScrollStyle() *ScrollStyle {
+	return &ScrollStyle{
+		color.ScrollTrack,
+		color.ScrollHandle,
+		1,
+	}
+}
+
 type scroll struct {
-	view.DefaultComponent
+	view.DefaultView
+	event.EventDispatcher
+	Style  *ScrollStyle
 	offset float64
 	scope  float64
 	size   float64
+}
+
+func newScroll(parent view.View, name string) scroll {
+	var s scroll
+	s.DefaultView = view.NewDefaultView(parent, name)
+	s.Style = NewScrollStyle()
+	return s
 }
 
 // SetOffset sets the offset but does not enforce  0 > offset > size.

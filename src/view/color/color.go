@@ -54,6 +54,10 @@ func (self RGBA) Alpha(alpha float64) RGBA {
 	return self
 }
 
+func (self RGBA) Disabled() RGBA {
+	return self.Alpha(0.5)
+}
+
 var (
 	Selection RGBA
 
@@ -104,6 +108,8 @@ var (
 	Check            RGBA
 	ScrollTrack      RGBA
 	ScrollHandle     RGBA
+	TextBackground   RGBA
+	TextForeground   RGBA
 )
 
 func init() {
@@ -154,5 +160,7 @@ func init() {
 	Check = HexRGBA(0xD770ADFF)
 	ScrollTrack = Gray10.Alpha(.1)
 	ScrollHandle = Gray10.Alpha(.3)
+	TextBackground = Gray1
+	TextForeground = Gray11
 
 }

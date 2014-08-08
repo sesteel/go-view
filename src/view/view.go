@@ -33,15 +33,18 @@ type View interface {
 	SetParent(View)
 	Parent() View
 	Name() string
-	SetStyle(Style)
-	Style() Style
 }
 
 type DefaultView struct {
-	parent  View
-	name    string
-	style   Style
-	current bool
+	parent View
+	name   string
+}
+
+func NewDefaultView(parent View, name string) DefaultView {
+	var v DefaultView
+	v.parent = parent
+	v.name = name
+	return v
 }
 
 func (self *DefaultView) SetParent(parent View) {
@@ -58,14 +61,6 @@ func (self *DefaultView) SetName(name string) {
 
 func (self *DefaultView) Name() string {
 	return self.name
-}
-
-func (self *DefaultView) SetStyle(style Style) {
-	self.style = style
-}
-
-func (self *DefaultView) Style() Style {
-	return self.style
 }
 
 func (self *DefaultView) Draw(surface *Surface) {

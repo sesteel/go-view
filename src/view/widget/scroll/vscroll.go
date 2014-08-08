@@ -7,7 +7,6 @@ package scroll
 
 import (
 	"view"
-	"view/color"
 )
 
 type verticalScroll struct {
@@ -15,12 +14,7 @@ type verticalScroll struct {
 }
 
 func NewVerticalScroll(parent view.View) Scroll {
-	v := &verticalScroll{scroll{*view.NewComponent(parent, "vertical scroll"), 0, 0, 0}}
-	style := v.Style()
-	style.SetBackground(color.ScrollTrack)
-	style.SetForeground(color.Red2)
-	style.SetRadius(1)
-	return v
+	return &verticalScroll{newScroll(parent, "vertical scroll")}
 }
 
 func (self *verticalScroll) Draw(s *view.Surface) {
@@ -32,14 +26,11 @@ func (self *verticalScroll) Draw(s *view.Surface) {
 
 	ratio := self.scope / self.size
 	pos := self.offset / self.size * h
-	s.SetSourceRGBA(self.Style().Background())
+	s.SetSourceRGBA(self.Style.TrackColor)
 	s.Rectangle(0, 0, w, h)
 	s.Fill()
-	s.SetSourceRGBA(self.Style().Foreground())
-	s.RoundedRectangle(0, pos, w, h*ratio,
-		self.Style().RadiusTopLeft(),
-		self.Style().RadiusTopRight(),
-		self.Style().RadiusBottomRight(),
-		self.Style().RadiusBottomLeft())
+	s.SetSourceRGBA(self.Style.HandleColor)
+	r := self.Style.HandleRadius
+	s.RoundedRectangle(0, pos, w, h*ratio, r, r, r, r)
 	s.Fill()
 }

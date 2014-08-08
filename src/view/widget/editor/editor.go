@@ -33,32 +33,24 @@ type Error Range
 // Editor is a simple widget by which one can enter and edit text.
 type Editor struct {
 	view.DefaultComponent
-	Tokenizer       tokenizer.Tokenizer
-	text            string // TODO Consider how to optimize this away as it gets created repeatedly
-	Lines           []tokenizer.Line
-	MarginColumn    int
-	DrawMargin      bool
-	MarginColor     color.RGBA
-	DrawScrollMap   bool
-	scrollMap       scrollMap
-	DrawGutter      bool
-	DrawWhitespace  bool
-	WhitespaceColor color.RGBA
-	Keywords        map[string]bool
-	Primitives      map[string]bool
-	StringStyle     TokenStyle
-	PrimitiveStyle  TokenStyle
-	KeywordStyle    TokenStyle
-	CommentStyle    TokenStyle
-	TabWidth        int
-	LineSpace       float64
-	Cursors         []*Cursor
-	Selection       *Selection
-	Selections      []*Selection
-	Errors          []*Error
-	vscroll         scroll.Scroll
-	linesDrawn      float64
-	lineSurfaces    []*view.Surface
+	Tokenizer      tokenizer.Tokenizer
+	text           string // TODO Consider how to optimize this away as it gets created repeatedly
+	Lines          []tokenizer.Line
+	DrawMargin     bool
+	DrawScrollMap  bool
+	scrollMap      scrollMap
+	DrawGutter     bool
+	DrawWhitespace bool
+	Keywords       map[string]bool
+	Primitives     map[string]bool
+	Cursors        []*Cursor
+	Selection      *Selection
+	Selections     []*Selection
+	Errors         []*Error
+	vscroll        scroll.Scroll
+	linesDrawn     float64
+	lineSurfaces   []*view.Surface
+	Style          *EditorStyle
 }
 
 // New creates and returns a simple Editor object with its defaults set.
@@ -74,22 +66,13 @@ func New(parent view.View, name string, text string) *Editor {
 		tknzr,
 		text,
 		tokenizer.ToLines(tknzr.Tokenize(text)),
-		80,
 		true,
-		color.RGBA{color.Pink1.R, color.Pink1.G, color.Pink1.B, 0.25},
 		true,
 		scrollMap{150, 0.25, color.Gray2.Alpha(0.25), color.Gray2, 1.0, 0, 0},
 		true,
 		true,
-		color.RGBA{color.Cyan1.R, color.Cyan1.G, color.Cyan1.B, 0.5},
 		make(map[string]bool),
 		make(map[string]bool),
-		TokenStyle{view.FONT_WEIGHT_NORMAL, view.FONT_SLANT_NORMAL, color.Black},
-		TokenStyle{view.FONT_WEIGHT_NORMAL, view.FONT_SLANT_ITALIC, color.Black},
-		TokenStyle{view.FONT_WEIGHT_BOLD, view.FONT_SLANT_NORMAL, color.Black},
-		TokenStyle{view.FONT_WEIGHT_NORMAL, view.FONT_SLANT_ITALIC, color.Gray8},
-		4,
-		1,
 		make([]*Cursor, 0),
 		&Selection{Range{Index{-1, -1}, Index{-1, -1}}},
 		make([]*Selection, 0),
@@ -97,14 +80,13 @@ func New(parent view.View, name string, text string) *Editor {
 		nil,
 		1,
 		make([]*view.Surface, 0),
+		NewEditorStyle(),
 	}
 
 	blue := color.Blue4
 	e.Cursors = append(e.Cursors, &Cursor{Index{0, 0}, OUTLINE, &blue, 0, 0})
-
 	e.vscroll = scroll.NewVerticalScroll(e)
-	e.vscroll.Style().SetForeground(color.Blue5.Alpha(.15))
-	e.vscroll.Style().SetBackground(color.Gray10.Alpha(.05))
+
 	e.AddMouseWheelDownHandler(func(event.Mouse) {
 		offset := e.vscroll.Offset()
 		offset++
@@ -121,16 +103,12 @@ func New(parent view.View, name string, text string) *Editor {
 
 	e.initDefaultKeyboardHandler()
 	e.addTextSelectionBehavior()
-	e.Style().SetPadding(0)
-	e.Style().SetRadius(0)
-	e.Style().SetForeground(color.Gray13)
-	e.Style().SetBackground(color.Gray1)
-	e.Style().SetFontName("Monospace")
-	e.Style().SetFontSize(13)
 	return e
 }
 
 func (self *Editor) Draw(s *view.Surface) {
+	s.SetSourceRGBA(self.Style.Background)
+	s.Paint()
 	self.drawLines(s)
 	s.Flush()
 }
@@ -164,7 +142,7 @@ func (self *Editor) drawLines(s *view.Surface) {
 			}
 			s.SetSourceSurface(surf, 0, pos.Y)
 			s.Paint()
-			pos.Y += float64(surf.Height()) * self.LineSpace
+			pos.Y += float64(surf.Height()) * self.Style.LineSpace
 		} else {
 			return
 		}
@@ -173,10 +151,10 @@ func (self *Editor) drawLines(s *view.Surface) {
 
 func (self *Editor) drawLine(s *view.Surface, line tokenizer.Line) *view.Surface {
 	b, extents := self.lineBounds(s, line)
-	style := self.Style()
+	style := self.Style
 	ce := extents.Extents('M')
 	se := extents.Extents(' ')
-	defaultStyle := &TokenStyle{style.FontWeight(), style.FontSlant(), style.Foreground()}
+	defaultStyle := &TokenStyle{style.Font.Weight, style.Font.Slant, style.Foreground}
 	surf := view.NewSurface(view.FORMAT_ARGB32, int(b.Width), int(ce.Height-ce.Ybearing))
 	extents = self.applyTextStyle(surf, style)
 
@@ -205,7 +183,7 @@ func (self *Editor) drawLine(s *view.Surface, line tokenizer.Line) *view.Surface
 			// TODO - proper non-monospace tab support
 			// TODO - mulitple sequential tabs behave strangely
 			self.drawWhitespace(s, 166, b)
-			advance := float64(self.TabWidth-(col%self.TabWidth)) * se.Xadvance
+			advance := float64(style.TabWidth-(col%style.TabWidth)) * se.Xadvance
 			bounds = Bounds{Point: Point{b.X, y}, Size: Size{advance, y}}
 			b.X = math.Floor(b.X+advance) + ALIGN
 			line.Bounds[col] = bounds
@@ -213,28 +191,27 @@ func (self *Editor) drawLine(s *view.Surface, line tokenizer.Line) *view.Surface
 
 		case tokenizer.IDENTIFIER:
 			if self.Keywords[c.Token.Value] {
-				ts = &self.KeywordStyle
+				ts = &style.KeywordStyle
 			} else if self.Primitives[c.Token.Value] {
-				ts = &self.PrimitiveStyle
+				ts = &style.PrimitiveStyle
 			} else {
 				ts = defaultStyle
 			}
 
 		case tokenizer.STRING_LITERAL:
-			ts = &self.StringStyle
+			ts = &style.StringStyle
 
 		case tokenizer.COMMENT:
-			ts = &self.CommentStyle
+			ts = &style.CommentStyle
 
 		default:
 			ts = defaultStyle
 		}
-
 		e := extents.Extents(c.Rune)
-		surf.SelectFontFace(style.FontName(), ts.Slant, ts.Weight)
+		surf.SelectFontFace(style.Font.Name, ts.Slant, ts.Weight)
 		surf.SetSourceRGBA(ts.Color)
 		surf.DrawRune(c.Rune, b.X, y)
-		bounds = Bounds{Point: Point{b.X, y}, Size: Size{e.Xadvance, y}}
+		bounds = Bounds{Point: Point{b.X, 0}, Size: Size{e.Xadvance, e.Height}}
 		b.X = math.Floor(b.X+e.Xadvance) + ALIGN
 		line.Bounds[col] = bounds
 	}
@@ -242,7 +219,7 @@ func (self *Editor) drawLine(s *view.Surface, line tokenizer.Line) *view.Surface
 }
 
 func (self *Editor) lineBounds(s *view.Surface, line tokenizer.Line) (Bounds, *extents) {
-	style := self.Style()
+	style := self.Style
 	extents := self.applyTextStyle(s, style)
 	b := Bounds{Point: Point{X: ALIGN, Y: ALIGN}, Size: Size{Width: 0, Height: 0}}
 	se := extents.Extents(' ')
@@ -257,7 +234,7 @@ func (self *Editor) lineBounds(s *view.Surface, line tokenizer.Line) (Bounds, *e
 		case tokenizer.SPACE, tokenizer.NEWLINE:
 			b.Width += se.Xadvance
 		case tokenizer.TAB:
-			advance := float64(self.TabWidth - (col % self.TabWidth))
+			advance := float64(style.TabWidth - (col % style.TabWidth))
 			b.Width += se.Xadvance * advance
 		default:
 			e := extents.Extents(c.Rune)
@@ -267,12 +244,11 @@ func (self *Editor) lineBounds(s *view.Surface, line tokenizer.Line) (Bounds, *e
 	return b, extents
 }
 
-func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) *extents {
-	s.SelectFontFace(style.FontName(), style.FontSlant(), style.FontWeight())
-	s.SetFontSize(style.FontSize())
+func (self *Editor) applyTextStyle(s *view.Surface, style *EditorStyle) *extents {
+	s.SelectFont(style.Font)
 	s.SetAntialias(view.ANTIALIAS_SUBPIXEL)
-	s.SetSourceRGBA(style.Foreground())
-	name := fmt.Sprint(style.FontName(), style.FontSlant(), style.FontWeight())
+	s.SetSourceRGBA(style.Foreground)
+	name := fmt.Sprint(style.Font.Name, style.Font.Slant, style.Font.Weight) // TODO- , style.Font.Size?
 	em := extentMaps[name]
 	if em == nil {
 		em = &extents{
@@ -280,8 +256,7 @@ func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) *extents {
 			view.NewSurface(view.FORMAT_ARGB32, 5, 5),
 			make(map[rune]*view.TextExtents, 0),
 		}
-		em.surface.SelectFontFace(style.FontName(), style.FontSlant(), style.FontWeight())
-		em.surface.SetFontSize(style.FontSize())
+		em.surface.SelectFont(style.Font)
 		em.Extents(' ')
 		em.Extents('M')
 		extentMaps[name] = em
@@ -292,7 +267,7 @@ func (self *Editor) applyTextStyle(s *view.Surface, style view.Style) *extents {
 func (self *Editor) drawWhitespace(s *view.Surface, r rune, b Bounds) {
 	if self.DrawWhitespace {
 		s.Save()
-		s.SetSourceRGBA(self.WhitespaceColor)
+		s.SetSourceRGBA(self.Style.WhitespaceColor)
 		s.DrawRune(r, b.X, b.Y)
 		s.Restore()
 	}
@@ -328,9 +303,10 @@ func (self *Editor) removeLineSurface(line int) {
 }
 
 func (self *Editor) destroyLineSurface(line int) {
-	if line < 0 && line >= len(self.lineSurfaces) {
+	if line < 0 || line >= len(self.lineSurfaces) {
 		return
 	}
+	fmt.Println(line, len(self.lineSurfaces))
 	s := self.lineSurfaces[line]
 	if s != nil {
 		s.Destroy()
