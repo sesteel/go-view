@@ -556,7 +556,6 @@ func (self *Surface) DrawRune(r rune, x, y float64) {
 	if r > '~' {
 		delta = 62
 	}
-
 	var glyph []C.cairo_glyph_t = []C.cairo_glyph_t{C.cairo_glyph_t{C.ulong(r - delta), C.double(x), C.double(y)}}
 	C.cairo_show_glyphs(self.context, &glyph[0], 1)
 }

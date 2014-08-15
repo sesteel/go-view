@@ -102,6 +102,10 @@ func (self *Window) SetSize(width, height float64) {
 	self.Redraw()
 }
 
+func (self *Window) SetPosition(x, y float64) {
+	C.XMoveWindow(self.display, self.xwindow, C.int(x), C.int(y))
+}
+
 func (self *Window) Draw(surface *Surface) {
 	//	surface.SetSourceRGBA(self.Style().Background())
 	//	_, h := self.Size()
@@ -398,7 +402,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			if DEBUG_DRAW_ALL {
 				if time.Since(before).Seconds() >= 1 {
 					if count < 60 {
-						fmt.Println("FPS:", count)
+						// fmt.Println("FPS:", count)
 					}
 					count = 0
 					before = time.Now()
@@ -408,7 +412,7 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 			}
 
 			C.XFlush(window.display)
-			time.Sleep(time.Millisecond * 10)
+			time.Sleep(time.Millisecond * 25)
 		}
 	}
 	window.drawloop = drawloop
