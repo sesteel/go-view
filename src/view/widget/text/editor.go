@@ -1,6 +1,7 @@
 package text
 
 import (
+	// "log"
 	"time"
 	"view"
 	"view/color"
@@ -44,9 +45,13 @@ type Editor struct {
 	Selections []*Selection
 	offset     float64
 	text       string // TODO Consider how to optimize this away as it gets created repeatedly
+	dirty      bool
 }
 
 func NewEditor(parent view.View, name string, text string) *Editor {
+	if text[len(text)-1] != '\n' {
+		text += "\n"
+	}
 	tknzr := plaintext.New()
 	e := &Editor{
 		*view.NewComponent(parent, name),
@@ -59,6 +64,7 @@ func NewEditor(parent view.View, name string, text string) *Editor {
 		make([]*Selection, 0),
 		0.0,
 		text,
+		true,
 	}
 	e.SetStyle(tokenizer.IDENTIFIER, &view.Font{"FreeMono", view.FONT_WEIGHT_NORMAL, view.FONT_SLANT_NORMAL, 15}, color.Gray11)
 	e.initDefaultKeyboardHandler()
@@ -110,6 +116,7 @@ func (self *Editor) Draw(s *view.Surface) {
 	s.SetSourceRGBA(style.Color)
 	x, y := 0.0, 0.0
 	h := float64(s.Height())
+
 	for _, line := range self.lines {
 		y += self.drawLine(s, line, x, y).Height * self.lineSpace
 		x = 0
@@ -120,21 +127,22 @@ func (self *Editor) Draw(s *view.Surface) {
 }
 
 func (self *Editor) drawLine(s *view.Surface, line []*Character, x, y float64) *view.TextExtents {
-	var max *view.TextExtents
+	style := self.style(tokenizer.IDENTIFIER)
+	var max *view.TextExtents = style.extents['.']
 	xx := 0.0
 	// Optimization did not seem to make a difference
-	// w := float64(s.Width())
+	w := float64(s.Width())
 	for _, char := range line {
-		style := self.style(char.Token.Type)
+		style = self.style(char.Token.Type)
 		e := style.extents[char.Rune]
-		if max == nil || e.Height > max.Height {
+		if e.Height > max.Height {
 			max = e
 		}
 		xx += e.Xadvance
 		// Optimization did not seem to make a meaningful difference
-		// if xx > w {
-		// 	break
-		// }
+		if xx > w {
+			break
+		}
 	}
 
 	y += max.Height
@@ -150,9 +158,9 @@ func (self *Editor) drawLine(s *view.Surface, line []*Character, x, y float64) *
 		s.DrawRune(char.Rune, x, y)
 		x += e.Xadvance
 		// Optimization did not seem to make a difference
-		// if x > w {
-		// 	break
-		// }
+		if x > w {
+			break
+		}
 	}
 	return max
 }
@@ -165,6 +173,24 @@ func (self *Editor) drawCursors(s *view.Surface) {
 func (self *Editor) Animate(s *view.Surface) {
 	self.drawCursors(s)
 	s.Flush()
+}
+
+func (self *Editor) initTokenizer() {
+	go func() {
+		text := self.text
+		for {
+			if text != self.text {
+				text = self.text
+				self.lines = self.toLines(self.tokenizer.Tokenize(self.text))
+				if text == self.text {
+					self.Redraw()
+				} else {
+					continue
+				}
+			}
+			time.Sleep(200 * time.Millisecond)
+		}
+	}()
 }
 
 func (self *Editor) toLines(tkns []*tokenizer.Token) [][]*Character {
@@ -182,6 +208,9 @@ func (self *Editor) toLines(tkns []*tokenizer.Token) [][]*Character {
 			lines = append(lines, line)
 			line = make([]*Character, 0)
 		}
+	}
+	if len(line) > 0 {
+		lines = append(lines, line)
 	}
 	return lines
 }

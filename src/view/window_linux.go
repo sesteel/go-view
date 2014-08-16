@@ -373,6 +373,8 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 
 	drawloop := func() {
 		var before time.Time
+		var loops int64 = 0
+		var nanos int64 = 0
 		count := 0
 		if DEBUG_DRAW_ALL {
 			before = time.Now()
@@ -382,11 +384,14 @@ func NewWindow(name string, x, y, w, h uint) *Window {
 		for {
 			since := time.Now()
 			if window.dirty {
+				loops++
 				window.dirty = false
 				s1.Destroy()
 				s1 = NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))
 				window.Draw(s1)
-				fmt.Println("time to render:", time.Since(since))
+				delta := time.Since(since)
+				nanos += delta.Nanoseconds()
+				fmt.Println("time to render:", delta, "avg:", time.Duration(nanos/loops))
 			}
 
 			s2 := NewSurface(FORMAT_ARGB32, int(window.width), int(window.height))

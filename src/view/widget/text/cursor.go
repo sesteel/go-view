@@ -6,7 +6,6 @@
 package text
 
 import (
-	// "log"
 	"time"
 	"view"
 	"view/color"
@@ -30,7 +29,7 @@ type Cursor struct {
 	Type         CursorType
 	Color        *color.RGBA
 	LineWidth    float64
-	LastMovement time.Time
+	lastMovement time.Time
 }
 
 func (self *Cursor) PreviousPos(lines []tokenizer.Line) Index {
@@ -48,6 +47,9 @@ func (self *Cursor) PreviousPos(lines []tokenizer.Line) Index {
 func (self *Cursor) Draw(s *view.Surface, e *Editor) {
 	offset := int(e.offset)
 	now := time.Now()
+	if len(e.lines[self.Index.Line]) == 0 {
+		return
+	}
 	char := e.lines[self.Index.Line][self.Index.Column]
 	extents := e.style(char.Token.Type).extents['M']
 	b := char.Bounds
@@ -62,7 +64,11 @@ func (self *Cursor) Draw(s *view.Surface, e *Editor) {
 		return
 	}
 
-	recentlyMoved := time.Since(self.LastMovement) < time.Second/2
+	if b.Y == 0 {
+		return
+	}
+
+	recentlyMoved := time.Since(self.lastMovement) < time.Second/2
 
 	blink := func(max float64) {
 		if recentlyMoved {
@@ -138,5 +144,5 @@ func (self *Cursor) Draw(s *view.Surface, e *Editor) {
 }
 
 func (self *Cursor) markTime() {
-	self.LastMovement = time.Now()
+	self.lastMovement = time.Now()
 }
