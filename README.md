@@ -1,6 +1,8 @@
 
 Current work has moved to:
-  https://github.com/sesteel/go-view
+
+  https://github.com/vizstra/ui
+
 where opengl has replaced Cairo for drawing calls.  The tradeoffs (complexity) to get efficient text rendering using Cairo are not something I want to make at the moment.  At least not without trying a different approach using OpenGL first.
 
 go-view
