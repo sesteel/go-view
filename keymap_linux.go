@@ -7,7 +7,7 @@
 package view
 
 import (
-	. "view/event/key"
+	. "github.com/sesteel/go-view/event/key"
 )
 
 var keymap map[uint]Key
@@ -15,7 +15,7 @@ var keymap map[uint]Key
 func init() {
 	keymap = make(map[uint]Key)
 	keymap[0xFF08] = BACKSPACE
-	keymap[0x20]   = SPACE
+	keymap[0x20] = SPACE
 	keymap[0xFF09] = TAB
 	keymap[0xFF0D] = RETURN
 	keymap[0xFF13] = BREAK

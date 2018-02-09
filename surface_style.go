@@ -6,7 +6,7 @@
 package view
 
 import (
-	"view/color"
+	"github.com/sesteel/go-view/color"
 )
 
 const ARC_TO_BEZIER = 0.55228475

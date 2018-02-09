@@ -7,7 +7,7 @@
 package view
 
 import (
-	"view/event"
+	"github.com/sesteel/go-view/event"
 )
 
 // Layouts are special types that provide strategies

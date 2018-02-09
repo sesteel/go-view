@@ -6,9 +6,9 @@
 package view
 
 import (
-	"view/color"
-	. "view/common"
-	"view/tokenizer"
+	"github.com/sesteel/go-view/color"
+	. "github.com/sesteel/go-view/common"
+	"github.com/sesteel/go-view/tokenizer"
 )
 
 func (self *Surface) DrawTextToken(t *tokenizer.Token, f *Font, b Bounds, c color.RGBA) {

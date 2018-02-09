@@ -1,7 +1,7 @@
 package view
 
 import (
-	"view/color"
+	"github.com/sesteel/go-view/color"
 )
 
 type BorderColors struct {

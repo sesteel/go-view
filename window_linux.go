@@ -7,7 +7,7 @@
 // +build linux,!goci
 package view
 
-// #cgo pkg-config: cairo x11
+// #cgo pkg-config: cairo x11 zlib
 // #include <X11/Xlib.h>
 // #include <X11/Xutil.h>
 // #include <X11/Xatom.h>
@@ -30,8 +30,9 @@ import (
 	"runtime"
 	"time"
 	"unsafe"
-	"view/color"
-	"view/event"
+
+	"github.com/sesteel/go-view/color"
+	"github.com/sesteel/go-view/event"
 )
 
 const (

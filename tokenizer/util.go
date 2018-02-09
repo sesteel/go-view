@@ -7,7 +7,7 @@
 package tokenizer
 
 import (
-	"view/common"
+	"github.com/sesteel/go-view/common"
 )
 
 type Line struct {

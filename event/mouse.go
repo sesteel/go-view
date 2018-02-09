@@ -6,7 +6,7 @@
 package event
 
 import (
-	"view/common"
+	"github.com/sesteel/go-view/common"
 )
 
 type MouseButton int8

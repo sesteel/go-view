@@ -49,8 +49,9 @@ import (
 	"image/draw"
 	"math"
 	"unsafe"
-	"view/color"
-	"view/extimage"
+
+	"github.com/sesteel/go-view/color"
+	"github.com/sesteel/go-view/extimage"
 )
 
 // Surface holds the cairo surface and a cairo context

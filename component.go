@@ -7,8 +7,8 @@
 package view
 
 import (
-	"view/color"
-	"view/event"
+	"github.com/sesteel/go-view/color"
+	"github.com/sesteel/go-view/event"
 )
 
 type Component interface {

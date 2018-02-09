@@ -7,7 +7,7 @@
 package view
 
 import (
-	"view/event"
+	"github.com/sesteel/go-view/event"
 )
 
 type CompositeView struct {

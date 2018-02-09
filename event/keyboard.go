@@ -6,7 +6,7 @@
 package event
 
 import (
-	. "view/event/key"
+	. "github.com/sesteel/go-view/event/key"
 )
 
 var GlobalKeyHandler KeyboardHandler
