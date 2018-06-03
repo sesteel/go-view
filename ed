@@ -1,7 +1,0 @@
-#!/bin/bash
-
-GOPATH=~/git/go-view/
-go build ./...
-cd src
-cyclo * | awk '$3 > 10'
-go run view/example/editor/main.go
